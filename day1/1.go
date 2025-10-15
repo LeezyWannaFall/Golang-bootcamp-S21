@@ -18,6 +18,7 @@ func scan(x, y *float64, operation *string) {
 			break
 		}
 		fmt.Print("Invalid input. Please enter a number.\n")
+		clearInputBuffer()
 	}
 
 	ValidOperators := []string{"+", "-", "*", "/"}
@@ -46,6 +47,7 @@ func scan(x, y *float64, operation *string) {
 			break
 		}
 		fmt.Print("Invalid input. Please enter a number.\n")
+		clearInputBuffer()
 	}
 }
 
@@ -64,5 +66,10 @@ func calculate(x, y float64, operation string) {
 			fmt.Printf("Result: %.3f", x / y)
 		}
 	}
+}
+
+func clearInputBuffer() {
+    var discard string
+    fmt.Scanln(&discard)
 }
 
