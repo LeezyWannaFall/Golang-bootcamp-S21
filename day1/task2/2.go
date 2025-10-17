@@ -14,27 +14,29 @@ type WordCount struct {
 }
 
 func main() {
-	var m map[string]int
 	var result []WordCount
 	var K int
 
 	reader := bufio.NewReader(os.Stdin)
 	line, _ := reader.ReadString('\n')
 	words := strings.Fields(line)
-
 	fmt.Scan(&K)
-	m = make(map[string]int)
+
+	MapAppend(words, &result)
+	SortSlice(result)
+	PrintResult(K, result)
+}
+
+func MapAppend(words []string, result *[]WordCount) {
+	m := make(map[string]int)
 	
 	for i := 0; i < len(words); i++ {
 		m[words[i]]++
 	}
 
 	for k, v := range m {
-		result = append(result, WordCount{k, v})
+		*result = append(*result, WordCount{k, v})
 	}
-
-	SortSlice(result)
-	PrintResult(K, result)
 }
 
 func SortSlice(result []WordCount) {
