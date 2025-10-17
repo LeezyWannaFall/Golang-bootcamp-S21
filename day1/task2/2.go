@@ -24,6 +24,7 @@ func main() {
 
 	fmt.Scan(&K)
 	m = make(map[string]int)
+	
 	for i := 0; i < len(words); i++ {
 		m[words[i]]++
 	}
@@ -32,6 +33,11 @@ func main() {
 		result = append(result, WordCount{k, v})
 	}
 
+	SortSlice(result)
+	PrintResult(K, result)
+}
+
+func SortSlice(result []WordCount) {
 	sort.Slice(result, func(i, j int) bool {
 		if result[i].count == result[j].count {
 			return result[i].word < result[j].word
@@ -39,7 +45,9 @@ func main() {
 			return result[i].count > result[j].count
 		}
 	})
+}
 
+func PrintResult(K int, result []WordCount) {
 	if K > len(result) {
 		for i := 0; i < len(result); i++ {
 			if i == len(result) - 1 {
