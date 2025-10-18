@@ -1,4 +1,4 @@
-package main
+package task2
 
 import (
 	"bufio"
@@ -20,6 +20,10 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	line, _ := reader.ReadString('\n')
 	words := strings.Fields(line)
+	if len(words) == 0 {
+		fmt.Print("\n")
+		return
+	}
 	fmt.Scan(&K)
 
 	MapAppend(words, &result)
