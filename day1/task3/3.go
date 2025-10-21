@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	FirstNumbers, err := AppendToSlice(readstr())
+	FirstNumbers, err := AppendToSlice(ReadStr())
 	if err != nil {
 		fmt.Print("Error: invalid input")
 		return
 	}
 
-	SecondNumbers, err := AppendToSlice(readstr())
+	SecondNumbers, err := AppendToSlice(ReadStr())
 	if err != nil {
 		fmt.Print("Error: invalid input")
 		return
@@ -29,7 +29,7 @@ func main() {
 	PrintResult(SimilarNumbers)
 }
 
-func readstr() []string {
+func ReadStr() []string {
 	reader := bufio.NewReader(os.Stdin)
 	line, _ := reader.ReadString('\n')
 	buffer := strings.Fields(line)
