@@ -52,7 +52,7 @@ func scan(x, y *float64, operation *string) {
 }
 
 func calculate(x, y float64, operation string) {
-	switch (operation) {
+	switch operation {
 	case "+":
 		fmt.Printf("Result: %.3f", x + y)
 	case "-":
