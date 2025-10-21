@@ -15,13 +15,13 @@ func TestPrintresult(t *testing.T) {
 		expected string
 	}{
 		{
-			name:   "Test Case 1",
+			name:   "Test Case 1 - normal case",
 			K:      3,
 			result: []WordCount{{"apple", 4}, {"banana", 2}, {"orange", 2}, {"grape", 1}},
 			expected: "apple banana orange",
 		},
 		{
-			name:   "Test Case 2",
+			name:   "Test Case 2 - empry result",
 			K:      0,
 			result: []WordCount{},
 			expected: "",

@@ -17,9 +17,7 @@ func main() {
 	var result []WordCount
 	var K int
 
-	reader := bufio.NewReader(os.Stdin)
-	line, _ := reader.ReadString('\n')
-	words := strings.Fields(line)
+	words := readstr()
 	if len(words) == 0 {
 		fmt.Print("\n")
 		return
@@ -29,6 +27,13 @@ func main() {
 	MapAppend(words, &result)
 	SortSlice(result)
 	PrintResult(K, result)
+}
+
+func readstr() []string {
+	reader := bufio.NewReader(os.Stdin)
+	line, _ := reader.ReadString('\n')
+	words := strings.Fields(line)
+	return words
 }
 
 func MapAppend(words []string, result *[]WordCount) {
