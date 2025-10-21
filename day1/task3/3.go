@@ -9,15 +9,13 @@ import (
 )
 
 func main() {
-	FirstBuffer := readstr()
-	FirstNumbers, err := AppendToSlice(FirstBuffer)
+	FirstNumbers, err := AppendToSlice(readstr())
 	if err != nil {
 		fmt.Print("Error: invalid input")
 		return
 	}
 
-	SecondBuffer := readstr()
-	SecondNumbers, err := AppendToSlice(SecondBuffer)
+	SecondNumbers, err := AppendToSlice(readstr())
 	if err != nil {
 		fmt.Print("Error: invalid input")
 		return
