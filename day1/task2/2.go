@@ -14,9 +14,15 @@ type WordCount struct {
 }
 
 func main() {
-	var result []WordCount
 	var K int
-	MostFamousWords(K, result)
+
+	words := readstr()
+	if len(words) == 0 {
+		fmt.Print("\n")
+		return 
+	}
+
+	MostFamousWords(K, words)
 }
 
 func readstr() []string {
@@ -70,14 +76,25 @@ func PrintResult(K int, result []WordCount) {
 	}
 }
 
-func MostFamousWords(K int, result []WordCount) {
-	words := readstr()
-	if len(words) == 0 {
-		fmt.Print("\n")
-		return 
+func WordCountToString(K int, result []WordCount) string {
+	var words []string
+	if K > len(result) {
+		for i := 0; i < len(result); i++ {
+			words = append(words, result[i].word)
+		}
+	} else {
+		for i := 0; i < K; i++ {
+			words = append(words, result[i].word)
+		}
 	}
+	return strings.Join(words, " ")
+}
+
+func MostFamousWords(K int, words []string) string {
+	var result []WordCount
 	fmt.Scan(&K)
 
 	SortSlice(MapAppend(words, &result))
 	PrintResult(K, result)
+	return WordCountToString(K, result)
 }
