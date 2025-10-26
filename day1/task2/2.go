@@ -16,17 +16,7 @@ type WordCount struct {
 func main() {
 	var result []WordCount
 	var K int
-
-	words := readstr()
-	if len(words) == 0 {
-		fmt.Print("\n")
-		return
-	}
-	fmt.Scan(&K)
-
-	MapAppend(words, &result)
-	SortSlice(result)
-	PrintResult(K, result)
+	MostFamousWords(K, result)
 }
 
 func readstr() []string {
@@ -36,7 +26,7 @@ func readstr() []string {
 	return words
 }
 
-func MapAppend(words []string, result *[]WordCount) {
+func MapAppend(words []string, result *[]WordCount) []WordCount {
 	m := make(map[string]int)
 	
 	for i := 0; i < len(words); i++ {
@@ -46,6 +36,8 @@ func MapAppend(words []string, result *[]WordCount) {
 	for k, v := range m {
 		*result = append(*result, WordCount{k, v})
 	}
+
+	return *result
 }
 
 func SortSlice(result []WordCount) {
@@ -76,4 +68,16 @@ func PrintResult(K int, result []WordCount) {
 			}
 		}
 	}
+}
+
+func MostFamousWords(K int, result []WordCount) {
+	words := readstr()
+	if len(words) == 0 {
+		fmt.Print("\n")
+		return 
+	}
+	fmt.Scan(&K)
+
+	SortSlice(MapAppend(words, &result))
+	PrintResult(K, result)
 }

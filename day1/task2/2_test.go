@@ -7,49 +7,59 @@ import (
 	"io"
 )
 
-func TestPrintresult(t *testing.T) {
+func TestMostFamousWords(t *testing.T) {
 	tests := []struct {
 		name     string
+		input    string
 		K        int
-		result   []WordCount
 		expected string
 	}{
 		{
-			name:   "Test Case 1 - normal case",
-			K:      3,
-			result: []WordCount{{"apple", 4}, {"banana", 2}, {"orange", 2}, {"grape", 1}},
-			expected: "apple banana orange",
+			name:	 "Basic Test",
+			input:    "apple banana apple orange banana apple\n",
+			K:        2,
+			expected: "apple banana",
 		},
 		{
-			name:   "Test Case 2 - empry result",
-			K:      0,
-			result: []WordCount{},
+			name:     "K Greater Than Unique Words",
+			input:    "red blue green red blue\n",
+			K:        5,
+			expected: "blue red green",
+		},
+		{
+			name:     "Empty Input",
+			input:    "",
+			K:        3,
 			expected: "",
-		},
-		{
-			name:   "Test Case 3 - K greater than length",
-			K:      5,
-			result: []WordCount{{"red", 2}, {"blue", 2}, {"green", 1}},
-			expected: "red blue green",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var output strings.Builder
-			originalStdout := os.Stdout
+			// Redirect stdin
+			oldStdin := os.Stdin
 			r, w, _ := os.Pipe()
-			os.Stdout = w
-
-			PrintResult(tt.K, tt.result)
-
+			w.WriteString(tt.input)
 			w.Close()
-			os.Stdout = originalStdout
-			out, _ := io.ReadAll(r)
-			output.Write(out)
+			os.Stdin = r
 
-			if output.String() != tt.expected {
-				t.Errorf("expected %q, got %q", tt.expected, output.String())
+			// Capture stdout
+			oldStdout := os.Stdout
+			rOut, wOut, _ := os.Pipe()
+			os.Stdout = wOut
+
+			var result []WordCount
+			MostFamousWords(tt.K, result)
+
+			wOut.Close()
+			var outputBuilder strings.Builder
+			io.Copy(&outputBuilder, rOut)
+			os.Stdout = oldStdout
+			os.Stdin = oldStdin
+
+			output := strings.TrimSpace(outputBuilder.String())
+			if output != tt.expected {
+				t.Errorf("expected '%s', got '%s'", tt.expected, output)
 			}
 		})
 	}
