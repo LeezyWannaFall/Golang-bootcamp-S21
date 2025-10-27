@@ -13,21 +13,21 @@ func TestMostFamousWords(t *testing.T) {
 		expected string
 	}{
 		{
-			name:	 "Basic Test",
-			input:    "apple banana apple orange banana apple",
-			K:        2,
+			name: "Basic Test",
+			input: "apple banana apple orange banana apple",
+			K: 2,
 			expected: "apple banana",
 		},
 		{
-			name:     "K Greater than Unique Words",
-			input:    "red blue green red blue",
-			K:        5,
+			name: "K Greater than Unique Words",
+			input: "red blue green red blue",
+			K: 5,
 			expected: "blue red green",
 		},
 		{
-			name:     "Empty Input",
-			input:    "",
-			K:        3,
+			name: "Empty Input",
+			input: "",
+			K: 3,
 			expected: "",
 		},
 	}

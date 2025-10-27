@@ -5,30 +5,34 @@ import (
 )
 
 type PatientInfo struct {
-	Doctor string
-	name [3]string
+	doctor string
+	name string
 	date string
 }
 
 func main() {
-	RunCommand(ReadCommand())
+	RunCommand()
 }
 
-func ReadCommand() string {
-	var Command string
-	fmt.Scan(&Command)
-	fmt.Print("\n")
-	return Command
-}
-
-func RunCommand(Command string) {
-	switch Command {
-	case "Save":
+func RunCommand() {
+	m := make(map[string]PatientInfo)
+	
+	for {
+		var Command string
+		fmt.Print("> ")
+		fmt.Scan(&Command)
 		
-	case "GetHistory":
-
-	case "GetLastVisit":
-
-	case "Exit", "exit":
+		switch Command {
+		case "Save", "save":
+			var doctor, name, date string
+		case "GetHistory", "gethistory":
+			var name string
+		case "GetLastVisit", "getlastvisit":
+			
+		case "Exit", "exit":
+			return
+		default:
+			fmt.Println("Unknown command")
+		}
 	}
 }
