@@ -6,8 +6,12 @@ import (
 
 type PatientInfo struct {
 	doctor string
-	name string
 	date string
+}
+
+type PatientName struct {
+	name string
+	PatientInfo struct{}
 }
 
 func main() {
@@ -16,7 +20,7 @@ func main() {
 
 func RunCommand() {
 	m := make(map[string]PatientInfo)
-	
+
 	for {
 		var Command string
 		fmt.Print("> ")
@@ -25,6 +29,8 @@ func RunCommand() {
 		switch Command {
 		case "Save", "save":
 			var doctor, name, date string
+			fmt.Scan(&name, &doctor, date)
+			// ...
 		case "GetHistory", "gethistory":
 			var name string
 		case "GetLastVisit", "getlastvisit":
