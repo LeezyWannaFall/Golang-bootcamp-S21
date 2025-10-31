@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"bufio"
+	"os"
+	"strings"
 )
 
 type PatientInfo struct {
@@ -9,17 +12,12 @@ type PatientInfo struct {
 	date string
 }
 
-type PatientName struct {
-	name string
-	PatientInfo struct{}
-}
-
 func main() {
 	RunCommand()
 }
 
 func RunCommand() {
-	m := make(map[string]PatientInfo)
+	m := make(map[string][]PatientInfo)
 
 	for {
 		var Command string
@@ -28,11 +26,25 @@ func RunCommand() {
 		
 		switch Command {
 		case "Save", "save":
-			var doctor, name, date string
-			fmt.Scan(&name, &doctor, date)
-			// ...
+			var doctor, date, name string
+			ReadName()
+			fmt.Scan(&doctor)
+			fmt.Scan(&date)
+
+			m[name] = append(m[name], PatientInfo{doctor: doctor, date: date})
 		case "GetHistory", "gethistory":
 			var name string
+			ReadName()
+
+			patient, ok := m[name]
+			if !ok {
+				fmt.Println("patient not found")
+				return
+			}
+
+			for _, i := range patient {
+				fmt .Println("Doctor: ", i.doctor, "| Date: ", i.date)
+			}
 		case "GetLastVisit", "getlastvisit":
 			
 		case "Exit", "exit":
@@ -41,4 +53,11 @@ func RunCommand() {
 			fmt.Println("Unknown command")
 		}
 	}
+}
+
+func ReadName() string {
+	reader := bufio.NewReader(os.Stdin)
+	line,_ := reader.ReadString('\n')
+	name := strings.TrimSpace(line)
+	return name
 }
