@@ -26,27 +26,45 @@ func RunCommand() {
 		
 		switch Command {
 		case "Save", "save":
-			var doctor, date, name string
-			ReadName()
+			name := ReadName()
+			var doctor, date string
 			fmt.Scan(&doctor)
 			fmt.Scan(&date)
 
 			m[name] = append(m[name], PatientInfo{doctor: doctor, date: date})
 		case "GetHistory", "gethistory":
-			var name string
-			ReadName()
-
-			patient, ok := m[name]
+			name := ReadName()
+			
+			visits, ok := m[name]
 			if !ok {
 				fmt.Println("patient not found")
-				return
-			}
-
-			for _, i := range patient {
-				fmt .Println("Doctor: ", i.doctor, "| Date: ", i.date)
+			} else {
+				for _, v := range visits {
+					fmt.Print("Doctor: ", v.doctor, "\n", "Date: ", v.date, "\n")
+				}
 			}
 		case "GetLastVisit", "getlastvisit":
-			
+			var doctor string
+			name := ReadName()
+			fmt.Scanln(&doctor)
+			ValidDoctor := true
+			visits, ok := m[name]
+			if !ok {
+				fmt.Print("patient not found\n")
+			} else {
+				for _, v := range visits {
+					if doctor == v.doctor {
+						fmt.Println("Date: ", v.date)
+						ValidDoctor = true
+					} else {
+						ValidDoctor = false
+					}
+				}
+			}
+
+			if !ValidDoctor {
+				fmt.Println("invalid doctor")
+			}
 		case "Exit", "exit":
 			return
 		default:
