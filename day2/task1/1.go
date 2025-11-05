@@ -15,8 +15,19 @@ type Result struct {
 }
 
 func main() {
-	N, _ := strconv.Atoi(os.Args[1])
-	M, _ := strconv.Atoi(os.Args[2])
+	if len(os.Args) != 3 {
+		fmt.Print("Error: invalid amount of arguments")
+		return
+	}
+
+	N, err := strconv.Atoi(os.Args[1])
+	M, err := strconv.Atoi(os.Args[2])
+	
+	if err != nil {
+		fmt.Print("Error: arguments must have type int")
+		return
+	}
+
 	m := make(map[int]int)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
