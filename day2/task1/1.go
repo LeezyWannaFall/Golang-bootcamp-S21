@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+type Result struct {
+	id, sleeptime int
+}
+
 func main() {
 	N, _ := strconv.Atoi(os.Args[1])
 	M, _ := strconv.Atoi(os.Args[2])
@@ -28,23 +32,24 @@ func main() {
 			m[id] = sleeptime
 			mu.Unlock()
 
-			fmt.Println("goroutine", id, "slept", sleeptime, "ms")
+			fmt.Print("Goroutine #", id, sleeptime, " ms\n")
 		}(i)
 	}
 
 	wg.Wait()
 
-	sortarray := make([]int, 0, len(m))
-	for k := range m {
-		sortarray = append(sortarray, k)
+
+	var results []Result
+	for id, sleeptime := range m {
+		results = append(results, Result{id, sleeptime})
 	}
 
-	sort.Slice(sortarray, func(i, j int) bool {
-		return m[sortarray[i]] < m[sortarray[j]]
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].sleeptime > results[j].sleeptime
 	})
 
 	fmt.Println("All goroutines finished. Collected results:")
-	for _, id := range sortarray {
-		fmt.Print(id, m[id], "\n")
+	for _, i := range results {
+		fmt.Println(i.id, i.sleeptime)
 	}
 }
