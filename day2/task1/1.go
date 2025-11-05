@@ -22,9 +22,9 @@ func main() {
 	var mu sync.Mutex
 
 	for i := 1; i < N + 1; i++ {
-		wg.Add(1)
+		wg.Add(1) // добавляем горутину (+1)
 		go func(id int) {
-			defer wg.Done()
+			defer wg.Done() // убавляем горутину (-1) 
 			sleeptime := rand.Intn(M)
 			time.Sleep(time.Duration(sleeptime) * time.Millisecond)
 
@@ -36,8 +36,7 @@ func main() {
 		}(i)
 	}
 
-	wg.Wait()
-
+	wg.Wait() // блокаем main горутину (ждем другие горутины)
 
 	var results []Result
 	for id, sleeptime := range m {
