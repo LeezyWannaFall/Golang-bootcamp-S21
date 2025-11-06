@@ -21,7 +21,7 @@ func main() {
 	}
 
 	N, err := strconv.Atoi(os.Args[1])
-	
+
 	if err != nil {
 		fmt.Print("Error: arguments must have type int")
 		return
@@ -34,11 +34,37 @@ func main() {
 		return
 	}
 
+	if !CheckInt(N, M) {
+		return
+	}
+
 
 	m := make(map[int]int)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
+	CreateRoutines(&wg, &mu, N, M, m)
+	wg.Wait() // блокаем main горутину (ждем другие горутины)
+	SortResult(m)
+}
+
+func SortResult(m map[int]int) {
+	var results []Result
+	for id, sleeptime := range m {
+		results = append(results, Result{id, sleeptime})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].sleeptime > results[j].sleeptime
+	})
+
+	fmt.Println("All goroutines finished. Collected results:")
+	for _, i := range results {
+		fmt.Println(i.id, i.sleeptime)
+	}
+}
+
+func CreateRoutines(wg *sync.WaitGroup, mu *sync.Mutex, N, M int, m map[int]int) {
 	for i := 1; i < N + 1; i++ {
 		wg.Add(1) // добавляем горутину (+1)
 		go func(id int) {
@@ -53,20 +79,12 @@ func main() {
 			fmt.Print("Goroutine #", id, sleeptime, " ms\n")
 		}(i)
 	}
+}
 
-	wg.Wait() // блокаем main горутину (ждем другие горутины)
-
-	var results []Result
-	for id, sleeptime := range m {
-		results = append(results, Result{id, sleeptime})
+func CheckInt(N, M int) bool {
+	if M <= 0 || N <= 0 {
+		fmt.Print("Numbers must be positive")
+		return false
 	}
-
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].sleeptime > results[j].sleeptime
-	})
-
-	fmt.Println("All goroutines finished. Collected results:")
-	for _, i := range results {
-		fmt.Println(i.id, i.sleeptime)
-	}
+	return true
 }
