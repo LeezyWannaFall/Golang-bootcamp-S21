@@ -21,12 +21,19 @@ func main() {
 	}
 
 	N, err := strconv.Atoi(os.Args[1])
-	M, err := strconv.Atoi(os.Args[2])
 	
 	if err != nil {
 		fmt.Print("Error: arguments must have type int")
 		return
 	}
+
+	M, err := strconv.Atoi(os.Args[2])
+
+	if err != nil {
+		fmt.Print("Error: arguments must have type int")
+		return
+	}
+
 
 	m := make(map[int]int)
 	var wg sync.WaitGroup
