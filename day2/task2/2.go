@@ -2,12 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
-	"sort"
 	"strconv"
-	"sync"
-	"time"
 )
 
 func main() {
@@ -45,3 +41,16 @@ func CheckInt(N, K int) bool {
 	}
 	return true
 }
+
+func Generator(K, N int) chan int {
+	firstchan := make(chan int)
+	go func() {
+		for i := K; i <= N; i++ {
+			firstchan <- i
+		}
+	}()
+}
+
+func Pow(firstchan <-chan int) chan int {
+	
+} 
