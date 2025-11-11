@@ -30,27 +30,40 @@ func main() {
 		return
 	}
 
-
-
-}
-
-func CheckInt(N, K int) bool {
-	if K <= 0 || N <= 0 {
-		fmt.Print("Numbers must be positive")
-		return false
+	pow := Pow(Generator(K, N))
+	for num := range pow {
+		fmt.Println(num)
 	}
-	return true
+	
 }
 
-func Generator(K, N int) chan int {
+func Generator(K, N int) <-chan int {
 	firstchan := make(chan int)
 	go func() {
 		for i := K; i <= N; i++ {
 			firstchan <- i
 		}
+		close(firstchan)
 	}()
+	return firstchan
 }
 
-func Pow(firstchan <-chan int) chan int {
-	
-} 
+func Pow(firstchan <-chan int) <-chan int {
+	secondchan := make(chan int)
+	go func() {
+		for val := range firstchan {
+			secondchan <- val * val
+		}
+		close(secondchan)
+	}()
+	return secondchan
+}
+
+
+func CheckInt(N, K int) bool {
+	if K > N {
+		fmt.Print("Error: First argument must be lower than second")
+		return false
+	}
+	return true
+}
