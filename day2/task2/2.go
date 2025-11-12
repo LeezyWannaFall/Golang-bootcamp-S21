@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 
-	pow := Pow(Generator(K, N))
+	pow := Sqr(Generator(K, N))
 	for num := range pow {
 		fmt.Println(num)
 	}
@@ -48,7 +48,7 @@ func Generator(K, N int) <-chan int {
 	return firstchan
 }
 
-func Pow(firstchan <-chan int) <-chan int {
+func Sqr(firstchan <-chan int) <-chan int {
 	secondchan := make(chan int)
 	go func() {
 		for val := range firstchan {
