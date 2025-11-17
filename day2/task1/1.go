@@ -16,21 +16,21 @@ type Result struct {
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Print("Error: invalid amount of arguments")
+		fmt.Println("Error: invalid amount of arguments")
 		return
 	}
 
 	N, err := strconv.Atoi(os.Args[1])
 
 	if err != nil {
-		fmt.Print("Error: arguments must have type int")
+		fmt.Println("Error: arguments must have type int")
 		return
 	}
 
 	M, err := strconv.Atoi(os.Args[2])
 
 	if err != nil {
-		fmt.Print("Error: arguments must have type int")
+		fmt.Println("Error: arguments must have type int")
 		return
 	}
 
@@ -83,7 +83,7 @@ func CreateRoutines(wg *sync.WaitGroup, mu *sync.Mutex, N, M int, m map[int]int)
 
 func CheckInt(N, M int) bool {
 	if M <= 0 || N <= 0 {
-		fmt.Print("Numbers must be positive")
+		fmt.Println("Numbers must be positive")
 		return false
 	}
 	return true

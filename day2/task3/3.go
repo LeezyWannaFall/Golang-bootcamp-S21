@@ -11,14 +11,14 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Print("Error: invalid amount of arguments")
+		fmt.Println("Error: invalid amount of arguments")
 		return
 	}
 
 	K, err := strconv.ParseUint(os.Args[1], 10, 64)
 
 	if err != nil {
-		fmt.Print("Error: Argument must have type uint")
+		fmt.Println("Error: Argument must have type uint")
 		return
 	}
 
@@ -31,7 +31,7 @@ func main() {
 
 	SigRes, ok := <-SignalChannel
 	if ok {
-		fmt.Println("Got signal:", SigRes)
+		fmt.Println("\nGot signal:", SigRes)
 		fmt.Println("Termination")
 		return
 	}

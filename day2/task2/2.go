@@ -8,21 +8,21 @@ import (
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Print("Error: invalid amount of arguments")
+		fmt.Println("Error: invalid amount of arguments")
 		return
 	}
 
 	K, err := strconv.Atoi(os.Args[1])
 	
 	if err != nil {
-		fmt.Print("Error: arguments must have type int")
+		fmt.Println("Error: arguments must have type int")
 		return
 	}
 
 	N, err := strconv.Atoi(os.Args[2])
 
 	if err != nil {
-		fmt.Print("Error: arguments must have type int")
+		fmt.Println("Error: arguments must have type int")
 		return
 	}
 
@@ -62,7 +62,7 @@ func Sqr(firstchan <-chan int) <-chan int {
 
 func CheckInt(N, K int) bool {
 	if K > N {
-		fmt.Print("Error: First argument must be lower than second")
+		fmt.Println("Error: First argument must be lower than second")
 		return false
 	}
 	return true
