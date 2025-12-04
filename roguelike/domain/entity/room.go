@@ -33,3 +33,11 @@ type ConsumablesRoom struct {
 	WeaponRoom WeaponRoom
 	WeaponNumber int
 }
+
+type Room struct {
+	Coordinates Object
+	Consumables ConsumablesRoom
+	ConsumablesNumber int
+	Monster []Monster
+	MonsterNumbers int
+}
