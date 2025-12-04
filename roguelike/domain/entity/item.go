@@ -1,13 +1,30 @@
 package entity
 
-import ()
+import "time"
 
-type ItemStats struct {
-	ItemType 	string
-	ItemSubType string
-	Health 		int
-	MaxHealth 	int
-	Agility 	int
-	Strength 	int
-	Price 		int
+type Treasure struct {
+	Value int
+}
+
+type Food struct {
+	ToRegen int
+	Name   	string
+}
+
+type Elixir struct {
+	duration time.Duration
+	stat 	 StatType
+	increase int
+	Name     string
+}
+
+type Scroll struct {
+	stat 	 StatType
+	increase int
+	Name     string
+}
+
+type Weapon struct {
+	Strength int
+	Name   string
 }
