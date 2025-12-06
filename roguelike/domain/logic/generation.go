@@ -5,6 +5,11 @@ import (
 	"roguelike/domain/entity"
 )
 
+type Edge struct {
+	u int // first point of edge
+	v int // second point of edge
+}
+
 func ClearData(level *entity.Level) {
 	for room := 0; room < entity.ROOMS_NUM; room++ {
 		level.Rooms[room].MonsterNumbers = 0
@@ -46,6 +51,28 @@ func GenerateRooms(room []entity.Room) {
 	}
 }
 
-func GenerateEdgesForRooms() {
+func GenerateEdgesForRooms(Edges []Edge, EdgesCount *int) {
+	*EdgesCount = 0
 
+	for i := 0; i < entity.ROOMS_IN_HEIGHT; i++ {
+		for j := 0; j + 1 < entity.ROOMS_IN_WIDTH; j++ {
+			CurrentRoom := i * entity.ROOMS_IN_WIDTH + j
+			
+			Edges[*EdgesCount].u = CurrentRoom
+			Edges[*EdgesCount].v = CurrentRoom + 1
+			
+			*EdgesCount++
+		}	
+	}
+
+	for i := 0; i + 1 < entity.ROOMS_IN_HEIGHT; i++ {
+		for j := 0; j < entity.ROOMS_IN_WIDTH; j++ {
+			CurrentRoom := i * entity.ROOMS_IN_WIDTH + j
+
+			Edges[*EdgesCount].u = CurrentRoom
+			Edges[*EdgesCount].v = CurrentRoom + entity.ROOMS_IN_WIDTH
+
+			*EdgesCount++
+		}	
+	}
 }
