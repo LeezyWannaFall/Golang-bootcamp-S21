@@ -3,6 +3,6 @@ package entity
 type Passage Object
 
 type Passages struct {
-	Passages Passage
+	Passages []Passage
 	PassagesNumber int
 }
