@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"math/rand/v2"
 	"roguelike/domain/entity"
 )
 
@@ -11,16 +10,6 @@ type Edge struct {
 }
 
 /* ---------------Math Functions--------------------------*/
-func GetRandomInRange(min, max int) int {
-	return rand.IntN(max-min+1) + min
-}
-
-func Abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
 /*----------------------------------------------------------*/
 
 func ClearData(level *entity.Level) {
@@ -120,10 +109,10 @@ func GenerateHorizontalPassage(FirstRoom, SecondRoom int, room []entity.Room, pa
 		// прямой коридор
 		CreatePassage(FirstX, FirstY, Abs(SecondX - FirstX) + 1, 1, passages)
 	} else {
-		Vertical := GetRandomInRange(min(FirstX, SecondX) + 1, max(FirstX, SecondX) - 1)
+		Vertical := GetRandomInRange(Min(FirstX, SecondX) + 1, Max(FirstX, SecondX) - 1)
 		// коридор с изгибом
 		CreatePassage(FirstX, FirstY, Abs(Vertical - FirstX) + 1, 1, passages)
-		CreatePassage(Vertical, min(FirstY, SecondY), 1, Abs(SecondY - FirstY) + 1, passages)
+		CreatePassage(Vertical, Min(FirstY, SecondY), 1, Abs(SecondY - FirstY) + 1, passages)
 		CreatePassage(Vertical, SecondY, Abs(SecondX - Vertical) + 1, 1, passages)
 	}
 }
@@ -146,7 +135,7 @@ func GenerateVerticalPassages(FirstRoom, SecondRoom int, room []entity.Room, pas
 		// прямой коридор
 		CreatePassage(FirstX, FirstY, 1, Abs(SecondY - FirstY) + 1, passages)
 	} else {
-		Horizont := GetRandomInRange(min(FirstY, SecondY) + 1, max(FirstY, SecondY) -1)
+		Horizont := GetRandomInRange(Min(FirstY, SecondY) + 1, Max(FirstY, SecondY) -1)
 		// коридор с изгибом
 		CreatePassage(FirstX, FirstY, 1, Abs(Horizont - FirstY) + 1, passages)
 		CreatePassage(min(FirstX, SecondX), Horizont, Abs(SecondX - FirstX) + 1, 1, passages)
