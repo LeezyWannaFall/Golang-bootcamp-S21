@@ -100,31 +100,56 @@ func CreatePassage(XCoord, YCoord, Width, Height int, Passages *entity.Passages)
 	Passages.PassagesNumber++
 }
 
-func GenerateHorizontalPassage(FirstRoom, SecondRoom int, Room []entity.Room, Passages *entity.Passages) {
-	FirstCoords := Room[FirstRoom].Coordinates
-	SecondCoords := Room[SecondRoom].Coordinates
+func GenerateHorizontalPassage(FirstRoom, SecondRoom int, room []entity.Room, passages *entity.Passages) {
+	FirstCoords := room[FirstRoom].Coordinates
+	SecondCoords := room[SecondRoom].Coordinates
 
-    // Для первой комнаты фиксируется правая стена, поэтому X координата определяется однозначно
-    // Для Y координаты определяются возможные значения и среди них выбирается случайное 
+	// правая стена первой комнаты
 	FirstX := FirstCoords.X + FirstCoords.W - 1
 	UpRangeCoord := FirstCoords.Y + 1
 	BottomRangeCoord := FirstCoords.Y + FirstCoords.H - 2
 	FirstY := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
-	// Аналогично для второй комнаты с левой стеной
+	// левая стена второй комнаты
 	SecondX := SecondCoords.X
 	UpRangeCoord = SecondCoords.Y + 1
 	BottomRangeCoord = SecondCoords.Y + SecondCoords.H - 2
 	SecondY := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
-	// Если Y координаты равны, то строится прямой коридор, иначе с изгибом,
-    // место которого выбирается случайно
 	if FirstY == SecondY {
-		CreatePassage(FirstX, FirstY, Abs(SecondX - FirstX) + 1, 1, Passages)
+		// прямой коридор
+		CreatePassage(FirstX, FirstY, Abs(SecondX - FirstX) + 1, 1, passages)
 	} else {
 		Vertical := GetRandomInRange(min(FirstX, SecondX) + 1, max(FirstX, SecondX) - 1)
-		CreatePassage(FirstX, FirstY, Abs(Vertical - FirstX) + 1, 1, Passages)
-		CreatePassage(Vertical, min(FirstY, SecondY), 1, Abs(SecondY - FirstY) + 1, Passages)
-		CreatePassage(Vertical, SecondY, Abs(SecondX - Vertical) + 1, 1, Passages)
+		// коридор с изгибом
+		CreatePassage(FirstX, FirstY, Abs(Vertical - FirstX) + 1, 1, passages)
+		CreatePassage(Vertical, min(FirstY, SecondY), 1, Abs(SecondY - FirstY) + 1, passages)
+		CreatePassage(Vertical, SecondY, Abs(SecondX - Vertical) + 1, 1, passages)
+	}
+}
+
+func GenerateVerticalPassages(FirstRoom, SecondRoom int, room []entity.Room, passages *entity.Passages) {
+	FirstCoords := room[FirstRoom].Coordinates
+	SecondCoords := room[SecondRoom].Coordinates
+
+	FirstY := FirstCoords.Y + FirstCoords.H
+	UpRangeCoord := FirstCoords.X + 1
+	BottomRangeCoord := FirstCoords.X + FirstCoords.W - 2
+	FirstX := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
+
+	SecondY := SecondCoords.Y
+	UpRangeCoord = SecondCoords.X + 1
+	BottomRangeCoord = SecondCoords.X + SecondCoords.W - 2
+	SecondX := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
+
+	if FirstX == SecondX {
+		// прямой коридор
+		CreatePassage(FirstX, FirstY, 1, Abs(SecondY - FirstY) + 1, passages)
+	} else {
+		Horizont := GetRandomInRange(min(FirstY, SecondY) + 1, max(FirstY, SecondY) -1)
+		// коридор с изгибом
+		CreatePassage(FirstX, FirstY, 1, Abs(Horizont - FirstY) + 1, passages)
+		CreatePassage(min(FirstX, SecondX), Horizont, Abs(SecondX - FirstX) + 1, 1, passages)
+		CreatePassage(SecondX, Horizont, 1, Abs(SecondY - Horizont) + 1, passages)
 	}
 }
