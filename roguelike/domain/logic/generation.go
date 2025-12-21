@@ -5,12 +5,9 @@ import (
 )
 
 type Edge struct {
-	u int // first point of edge
-	v int // second point of edge
+	u int // first room
+	v int // second room
 }
-
-/* ---------------Math Functions--------------------------*/
-/*----------------------------------------------------------*/
 
 func ClearData(level *entity.Level) {
 	for room := 0; room < entity.ROOMS_NUM; room++ {
@@ -33,12 +30,15 @@ func GenerateRooms(room []entity.Room) {
 		WidthRoom := GetRandomInRange(entity.MIN_ROOM_WIDTH, entity.MAX_ROOM_WIDTH)
 		HeightRoom := GetRandomInRange(entity.MIN_ROOM_HEIGHT, entity.MAX_ROOM_HEIGHT)
 
-		LeftRangeCoord := (i % entity.ROOMS_IN_WIDTH) * entity.REGION_WIDTH + 1
-		RightRangeCoord := (i % entity.ROOMS_IN_WIDTH  + 1) * entity.REGION_WIDTH - WidthRoom - 1
+		regionX := (i % entity.ROOMS_IN_WIDTH)
+		regionY := (i / entity.ROOMS_IN_WIDTH)
+
+		LeftRangeCoord := regionX * entity.REGION_WIDTH + 1
+		RightRangeCoord := (regionX + 1) * entity.REGION_WIDTH - WidthRoom - 1
 		XCoord := GetRandomInRange(LeftRangeCoord, RightRangeCoord)
 
-		UpRangeCoord := (i / entity.ROOMS_IN_WIDTH) * entity.REGION_HEIGHT + 1
-		BottomRangeCoord := (i / entity.ROOMS_IN_WIDTH) * entity.REGION_HEIGHT - HeightRoom - 1
+		UpRangeCoord := regionY * entity.REGION_HEIGHT + 1
+		BottomRangeCoord := regionY * entity.REGION_HEIGHT - HeightRoom - 1
 		YCoord := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 		
 		room[i].Coordinates.W = WidthRoom
