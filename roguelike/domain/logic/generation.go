@@ -185,3 +185,109 @@ func GeneratePlayer(rooms []entity.Room, player *entity.Player) int {
 	return PlayerRoom
 }
 
+func GenerateExit(level *entity.Level, playerRoom int) {
+	var exitRoom int
+
+	for {
+		// выбираем случайную комнату
+		exitRoom = GetRandomInRange(0, entity.ROOMS_NUM-1)
+
+		// нельзя в комнате игрока
+		for exitRoom == playerRoom {
+			exitRoom = GetRandomInRange(0, entity.ROOMS_NUM-1)
+		}
+
+		room := level.Rooms[exitRoom]
+
+		// отступаем от стен
+		upperLeftX := room.Coordinates.X + 2
+		upperLeftY := room.Coordinates.Y + 2
+
+		bottomRightX := upperLeftX + room.Coordinates.W - 5
+		bottomRightY := upperLeftY + room.Coordinates.H - 5
+
+		level.EndOfLevel.X = GetRandomInRange(upperLeftX, bottomRightX)
+		level.EndOfLevel.Y = GetRandomInRange(upperLeftY, bottomRightY)
+
+		level.EndOfLevel.W = 1
+		level.EndOfLevel.H = 1
+
+		// проверка, что место свободно
+		if CheckUnoccupiedRoom(&level.EndOfLevel, &level.Rooms[exitRoom]) {
+			break
+		}
+	}
+}
+
+func GenerateMonsterData(monster *entity.Monster, levelNum int) {
+	monster.Type = entity.MonsterType(GetRandomInRange(0, 4))
+
+	switch monster.Type {
+	case entity.Zombie:
+		monster.Hostility = entity.Medium
+		monster.Stats.Agility = 25
+		monster.Stats.Strength = 125
+		monster.Stats.Health = 50
+
+	case entity.Vampire:
+		monster.Hostility = entity.High
+		monster.Stats.Agility = 75
+		monster.Stats.Strength = 125
+		monster.Stats.Health = 50
+
+	case entity.Ghost:
+		monster.Hostility = entity.Low
+		monster.Stats.Agility = 75
+		monster.Stats.Strength = 25
+		monster.Stats.Health = 75
+
+	case entity.Ogre:
+		monster.Hostility = entity.Medium
+		monster.Stats.Agility = 25
+		monster.Stats.Strength = 100
+		monster.Stats.Health = 150
+
+	case entity.Snake:
+		monster.Hostility = entity.High
+		monster.Stats.Agility = 100
+		monster.Stats.Strength = 30
+		monster.Stats.Health = 100
+	}
+
+	// Масштабирование сложности от уровня
+	percentsUpdate := entity.PERCENTS_UPDATE_DIFFICULTY_MONSTERS * levelNum
+
+	monster.Stats.Agility += monster.Stats.Agility * percentsUpdate / 100
+	monster.Stats.Strength += monster.Stats.Strength * percentsUpdate / 100
+	monster.Stats.Health += monster.Stats.Health * float64(percentsUpdate) / 100
+
+	monster.IsChasing = false
+	monster.Dir = entity.Stop
+}
+
+func GenerateMonsters(level *entity.Level, playerRoom int) {
+	// Максимум монстров растёт с уровнем
+	maxMonsters := entity.MAX_MONSTERS_PER_ROOM + level.LevelNumber/entity.LEVEL_UPDATE_DIFFICULTY
+
+	for room := 0; room < entity.ROOMS_NUM; room++ {
+		if room == playerRoom {
+			continue
+		}
+
+		countMonsters := GetRandomInRange(0, maxMonsters)
+
+		for i := 0; i < countMonsters; i++ {
+			coords := &level.Rooms[room].Monsters[i].Stats.Pos
+
+			for {
+				GenerateCoordsOfEntity(&level.Rooms[room], coords)
+				if CheckUnoccupiedRoom(coords, &level.Rooms[room]) {
+					break
+				}
+			}
+
+			GenerateMonsterData(&level.Rooms[room].Monsters[i], level.LevelNumber)
+			level.Rooms[room].MonsterNumbers++
+		}
+	}
+}

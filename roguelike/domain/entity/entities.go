@@ -136,7 +136,7 @@ type Room struct {
 	Coordinates Object
 	Consumables ConsumablesRoom
 	ConsumablesNumber int
-	Monster []Monster
+	Monsters [MAX_MONSTERS_PER_ROOM]Monster
 	MonsterNumbers int
 }
 
