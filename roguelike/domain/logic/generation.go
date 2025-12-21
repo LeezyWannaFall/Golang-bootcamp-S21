@@ -1,13 +1,9 @@
 package logic
 
 import (
+	"roguelike/domain/datastructs"
 	"roguelike/domain/entity"
 )
-
-type Edge struct {
-	u int // first room
-	v int // second room
-}
 
 func ClearData(level *entity.Level) {
 	for room := 0; room < entity.ROOMS_NUM; room++ {
@@ -33,14 +29,14 @@ func GenerateRooms(room []entity.Room) {
 		regionX := (i % entity.ROOMS_IN_WIDTH)
 		regionY := (i / entity.ROOMS_IN_WIDTH)
 
-		LeftRangeCoord := regionX * entity.REGION_WIDTH + 1
-		RightRangeCoord := (regionX + 1) * entity.REGION_WIDTH - WidthRoom - 1
+		LeftRangeCoord := regionX*entity.REGION_WIDTH + 1
+		RightRangeCoord := (regionX+1)*entity.REGION_WIDTH - WidthRoom - 1
 		XCoord := GetRandomInRange(LeftRangeCoord, RightRangeCoord)
 
-		UpRangeCoord := regionY * entity.REGION_HEIGHT + 1
-		BottomRangeCoord := regionY * entity.REGION_HEIGHT - HeightRoom - 1
+		UpRangeCoord := regionY*entity.REGION_HEIGHT + 1
+		BottomRangeCoord := regionY*entity.REGION_HEIGHT - HeightRoom - 1
 		YCoord := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
-		
+
 		room[i].Coordinates.W = WidthRoom
 		room[i].Coordinates.H = HeightRoom
 
@@ -49,38 +45,38 @@ func GenerateRooms(room []entity.Room) {
 	}
 }
 
-func GenerateEdgesForRooms(Edges []Edge, EdgesCount *int) {
+func GenerateEdgesForRooms(Edges []datastructs.Edge, EdgesCount *int) {
 	*EdgesCount = 0
 
 	for i := 0; i < entity.ROOMS_IN_HEIGHT; i++ {
-		for j := 0; j + 1 < entity.ROOMS_IN_WIDTH; j++ {
-			CurrentRoom := i * entity.ROOMS_IN_WIDTH + j
-			
-			Edges[*EdgesCount].u = CurrentRoom
-			Edges[*EdgesCount].v = CurrentRoom + 1
-			
+		for j := 0; j+1 < entity.ROOMS_IN_WIDTH; j++ {
+			CurrentRoom := i*entity.ROOMS_IN_WIDTH + j
+
+			Edges[*EdgesCount].U = CurrentRoom
+			Edges[*EdgesCount].V = CurrentRoom + 1
+
 			*EdgesCount++
-		}	
+		}
 	}
 
-	for i := 0; i + 1 < entity.ROOMS_IN_HEIGHT; i++ {
+	for i := 0; i+1 < entity.ROOMS_IN_HEIGHT; i++ {
 		for j := 0; j < entity.ROOMS_IN_WIDTH; j++ {
-			CurrentRoom := i * entity.ROOMS_IN_WIDTH + j
+			CurrentRoom := i*entity.ROOMS_IN_WIDTH + j
 
-			Edges[*EdgesCount].u = CurrentRoom
-			Edges[*EdgesCount].v = CurrentRoom + entity.ROOMS_IN_WIDTH
+			Edges[*EdgesCount].U = CurrentRoom
+			Edges[*EdgesCount].V = CurrentRoom + entity.ROOMS_IN_WIDTH
 
 			*EdgesCount++
-		}	
+		}
 	}
 }
 
 func CreatePassage(XCoord, YCoord, Width, Height int, Passages *entity.Passages) {
 	Passages.Passages = append(Passages.Passages, entity.Passage{})
-	
+
 	PassageCounter := Passages.PassagesNumber
 
-	Passages.Passages[PassageCounter].X = XCoord -1 
+	Passages.Passages[PassageCounter].X = XCoord - 1
 	Passages.Passages[PassageCounter].Y = YCoord - 1
 
 	Passages.Passages[PassageCounter].W = Width + 2
@@ -107,13 +103,13 @@ func GenerateHorizontalPassage(FirstRoom, SecondRoom int, room []entity.Room, pa
 
 	if FirstY == SecondY {
 		// прямой коридор
-		CreatePassage(FirstX, FirstY, Abs(SecondX - FirstX) + 1, 1, passages)
+		CreatePassage(FirstX, FirstY, Abs(SecondX-FirstX)+1, 1, passages)
 	} else {
-		Vertical := GetRandomInRange(Min(FirstX, SecondX) + 1, Max(FirstX, SecondX) - 1)
+		Vertical := GetRandomInRange(Min(FirstX, SecondX)+1, Max(FirstX, SecondX)-1)
 		// коридор с изгибом
-		CreatePassage(FirstX, FirstY, Abs(Vertical - FirstX) + 1, 1, passages)
-		CreatePassage(Vertical, Min(FirstY, SecondY), 1, Abs(SecondY - FirstY) + 1, passages)
-		CreatePassage(Vertical, SecondY, Abs(SecondX - Vertical) + 1, 1, passages)
+		CreatePassage(FirstX, FirstY, Abs(Vertical-FirstX)+1, 1, passages)
+		CreatePassage(Vertical, Min(FirstY, SecondY), 1, Abs(SecondY-FirstY)+1, passages)
+		CreatePassage(Vertical, SecondY, Abs(SecondX-Vertical)+1, 1, passages)
 	}
 }
 
@@ -133,12 +129,59 @@ func GenerateVerticalPassages(FirstRoom, SecondRoom int, room []entity.Room, pas
 
 	if FirstX == SecondX {
 		// прямой коридор
-		CreatePassage(FirstX, FirstY, 1, Abs(SecondY - FirstY) + 1, passages)
+		CreatePassage(FirstX, FirstY, 1, Abs(SecondY-FirstY)+1, passages)
 	} else {
-		Horizont := GetRandomInRange(Min(FirstY, SecondY) + 1, Max(FirstY, SecondY) -1)
+		Horizont := GetRandomInRange(Min(FirstY, SecondY)+1, Max(FirstY, SecondY)-1)
 		// коридор с изгибом
-		CreatePassage(FirstX, FirstY, 1, Abs(Horizont - FirstY) + 1, passages)
-		CreatePassage(min(FirstX, SecondX), Horizont, Abs(SecondX - FirstX) + 1, 1, passages)
-		CreatePassage(SecondX, Horizont, 1, Abs(SecondY - Horizont) + 1, passages)
+		CreatePassage(FirstX, FirstY, 1, Abs(Horizont-FirstY)+1, passages)
+		CreatePassage(min(FirstX, SecondX), Horizont, Abs(SecondX-FirstX)+1, 1, passages)
+		CreatePassage(SecondX, Horizont, 1, Abs(SecondY-Horizont)+1, passages)
 	}
 }
+
+func GeneratePassages(passages *entity.Passages, rooms []entity.Room) {
+	// Создание массива ребер и получение его случайной перестановки
+	passages.PassagesNumber = 0
+	var countPassages int
+	edges := make([]datastructs.Edge, entity.MAX_PASSAGES_NUM)
+	GenerateEdgesForRooms(edges, &countPassages)
+	ShuffleEdges(edges[:countPassages])
+
+	// Коридоры между комнатами будут создаваться при помощи системы непересекающихся множеств
+	parent := make([]int, entity.ROOMS_NUM)
+	rank := make([]int, entity.ROOMS_NUM)
+	datastructs.MakeSets(parent, rank)
+
+	for i := 0; i < countPassages; i++ {
+		if datastructs.FindSet(edges[i].U, parent) != datastructs.FindSet(edges[i].V, parent) {
+			datastructs.UnionSets(edges[i].U, edges[i].V, parent, rank)
+
+			if edges[i].U/entity.ROOMS_IN_WIDTH == edges[i].V/entity.ROOMS_IN_WIDTH {
+				GenerateHorizontalPassage(edges[i].U, edges[i].V, rooms, passages)
+			} else {
+				GenerateVerticalPassages(edges[i].U, edges[i].V, rooms, passages)
+			}
+		}
+	}
+}
+
+func GenerateCoordsOfEntity(room *entity.Room, coords *entity.Object) {
+	UpperLeftX := room.Coordinates.X + 1
+	UpperLeftY := room.Coordinates.Y + 1
+
+	LowerRightX := room.Coordinates.X + room.Coordinates.W - 3
+	LowerRightY := room.Coordinates.Y + room.Coordinates.H - 3
+
+	coords.X = GetRandomInRange(UpperLeftX, LowerRightX)
+	coords.Y = GetRandomInRange(UpperLeftY, LowerRightY)
+
+	coords.W = 1
+	coords.H = 1
+}
+
+func GeneratePlayer(rooms []entity.Room, player *entity.Player) int {
+	PlayerRoom := GetRandomInRange(0, entity.ROOMS_NUM)
+	GenerateCoordsOfEntity(&rooms[PlayerRoom], &player.BaseStats.Pos)
+	return PlayerRoom
+}
+
