@@ -119,16 +119,16 @@ type WeaponRoom struct {
 }
 
 type ConsumablesRoom struct {
-	RoomFood  FoodRoom
+	RoomFood  [MAX_CONSUMABLES_PER_ROOM]FoodRoom
 	FoodNumber int
 
-	RoomElixir ElixirRoom
+	RoomElixir [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
 	ElixirNumber int
 
-	RoomScroll ScrollRoom
+	RoomScroll [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
 	ScrollNumber int
 
-	WeaponRoom WeaponRoom
+	WeaponRoom [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
 	WeaponNumber int
 }
 

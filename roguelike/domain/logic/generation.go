@@ -59,7 +59,7 @@ func GenerateEdgesForRooms(Edges []datastructs.Edge, EdgesCount *int) {
 		}
 	}
 
-	for i := 0; i+1 < entity.ROOMS_IN_HEIGHT; i++ {
+	for i := 0; i + 1 < entity.ROOMS_IN_HEIGHT; i++ {
 		for j := 0; j < entity.ROOMS_IN_WIDTH; j++ {
 			CurrentRoom := i*entity.ROOMS_IN_WIDTH + j
 
@@ -290,4 +290,36 @@ func GenerateMonsters(level *entity.Level, playerRoom int) {
 			level.Rooms[room].MonsterNumbers++
 		}
 	}
+}
+
+func GenerateFoodData(food *entity.Food, player *entity.Player) {
+	names := [entity.CONSUMABLES_TYPE_MAX_NUM]string{
+        "Ration of the Ironclad",
+        "Crimson Berry Cluster",
+        "Loaf of the Forgotten Baker",
+        "Smoked Wyrm Jerky",
+        "Golden Apple of Vitality",
+        "Hardtack of the Endless March",
+        "Spiced Venison Strips",
+        "Honeyed Nectar Bread",
+        "Dried Mushrooms of the Deep",}
+
+	MaxRegen := player.BaseStats.Health * entity.MAX_PERCENT_FOOD_REGEN_FROM_HEALTH / 100
+	food.ToRegen = GetRandomInRange(1, int(MaxRegen))
+	food.Name = names[GetRandomInRange(0, entity.CONSUMABLES_TYPE_MAX_NUM-1)]
+}
+
+func GenerateFood(room *entity.Room, player *entity.Player) {
+	CountFood := room.Consumables.FoodNumber
+	Coords := &room.Consumables.RoomFood[CountFood].Geometry
+
+	for {
+		GenerateCoordsOfEntity(room, Coords)
+		if CheckUnoccupiedRoom(Coords, room) {
+			break
+		}
+	}
+
+	GenerateFoodData(&room.Consumables.RoomFood[CountFood].Food, player)
+	room.Consumables.FoodNumber++
 }
