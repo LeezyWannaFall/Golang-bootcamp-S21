@@ -152,7 +152,7 @@ type Backpack struct {
 	Scrols Scroll
 	ScrollNumber int
 
-	Treasires Treasure
+	Treasures Treasure
 
 	Weapons Weapon
 	WeaponNumber int

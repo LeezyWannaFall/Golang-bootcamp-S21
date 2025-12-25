@@ -323,3 +323,4 @@ func GenerateFood(room *entity.Room, player *entity.Player) {
 	GenerateFoodData(&room.Consumables.RoomFood[CountFood].Food, player)
 	room.Consumables.FoodNumber++
 }
+
