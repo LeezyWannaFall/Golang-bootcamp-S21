@@ -3,6 +3,7 @@ package characters
 import (
 	"roguelike/domain/datastructs"
 	"roguelike/domain/entity"
+	"roguelike/domain/logic"
 )
 
 
@@ -40,45 +41,83 @@ func MoveCharacterByDirection(direction entity.Direction, characterGeometry *ent
 	}
 }
 
-func MoveCharacterByPath(path *datastructs.Vector, characterGeometry *entity.Object) {
-	if path == nil {
-		return
-	}
-	for _, direction := range path.Data {
-		MoveCharacterByDirection(direction, characterGeometry)
+
+func MoveMonster(monster *entity.Monster, level *entity.Level) {
+	switch monster.Type {
+	case entity.Zombie:
+		if IsPlayerNear() {
+			FindPathToPlayer()
+		} else {
+			patternZombie(monster, level)
+		}
+	case entity.Vampire:
+		if IsPlayerNear() {
+			FindPathToPlayer()
+		} else {
+			patternVampire(monster, level)			
+		}		
+	case entity.Ghost:
+		if IsPlayerNear() {
+			FindPathToPlayer()
+		} else {
+			patternGhost(monster, level)
+		}
+	case entity.Ogre:
+		if IsPlayerNear() {
+			FindPathToPlayer()
+		} else {
+			patternOgre(monster, level)
+		}
+	case entity.Snake:
+		if IsPlayerNear() {
+			FindPathToPlayer()
+		} else {
+			patternSnake(monster, level)
+		}
 	}
 }
 
-func MoveMonster(monster *entity.Monster, playerCoordinates *entity.Object, level *entity.Level) {
-    // Define movement patterns for each monster type
-    npcMovementFunctions := map[entity.MonsterType]func(*entity.Monster, *entity.Level) *datastructs.Vector{
-        entity.Zombie: patternZombie,
-        entity.Vampire: patternVampire,
-        entity.Ghost: patternGhost,
-        entity.Ogre: patternOgre,
-        entity.Snake: patternSnake,
-    }
+func PatternMonsters(monster *entity.Monster, level *entity.Level) {
+	for try := 0; try < MAX_TRIES_TO_MOVE; try++ {
+		coords := monster.Stats.Pos
+		direction := entity.Direction(logic.GetRandomInRange(0, SIMPLE_DIRECTIONS))
+		MoveCharacterByDirection(direction, &coords)
 
-    var path *datastructs.Vector
-    if IsPlayerNear(playerCoordinates, monster) {
-        path = DistAndNextPosToTarget(&monster.Stats.Pos, playerCoordinates, level)
-        if path != nil {
-            path.Size = 1
+		if !CheckOutsideBorder(&coords, level) && CheckUnoccupiedLevel(&coords, level) {
+            // Если ход допустим, обновляем координаты монстра
+            monster.Stats.Pos = coords
+            monster.Dir = direction
+            return
         }
-    }
+	}
+}
 
-    if path == nil {
-        path = npcMovementFunctions[monster.Type](monster, level)
-    }
+func patternZombie(monster *entity.Monster, level *entity.Level) {
+	PatternMonsters(monster, level)
+}
 
-    coords := monster.Stats.Pos
-    if path != nil {
-        MoveCharacterByPath(path, &coords)
-        if !CheckEqualCoords(coords, playerCoordinates) {
-            MoveCharacterByPath(path, &monster.Stats.Pos)
-        }
-        monster.Dir = path.Data[path.Size - 1]
-    }
+func patternVampire(monster *entity.Monster, level *entity.Level) {
+	PatternMonsters(monster, level)
+}
 
-    DestroyVector(path)
+func patternGhost(monster *entity.Monster, level *entity.Level) {
+	PatternMonsters(monster, level)
+}
+
+func patternOgre(monster *entity.Monster, level *entity.Level) {
+	for step := 0; step < OGRE_STEP; step++ {
+		PatternMonsters(monster, level)
+	}
+}
+
+func patternSnake(monster *entity.Monster, level *entity.Level) {
+	PatternMonsters(monster, level)
+}
+
+func IsPlayerNear(playerCoordinates *entity.Object, monster *entity.Monster) bool {
+
+}
+
+func FindPathToPlayer(monster *entity.Monster, level *entity.Level, playerCoordinates *entity.Object) {
+
 }
