@@ -118,6 +118,20 @@ func IsPlayerNear(playerCoordinates *entity.Object, monster *entity.Monster) boo
 
 }
 
-func FindPathToPlayer(monster *entity.Monster, level *entity.Level, playerCoordinates *entity.Object) {
+func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entity.Player) {
+	queue := []entity.Pos{}
+	visited := make(map[entity.Pos]bool)
+	parent := make(map[entity.Pos]entity.Pos)
 
+	start := entity.Pos{
+		X: monster.Stats.Pos.X,
+		Y: monster.Stats.Pos.Y,
+	}
+
+	target := entity.Pos{
+		X: player.BaseStats.Pos.X,
+		Y: player.BaseStats.Pos.Y,
+	}
+
+	visited[start] = true
 }

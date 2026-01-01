@@ -56,6 +56,11 @@ type Object struct {
     H    int
 }
 
+type Pos struct {
+	X int
+	Y int
+}
+
 type Character struct {
     Pos      Object
     Health   float64
