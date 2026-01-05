@@ -178,7 +178,7 @@ func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entit
 
 			next := entity.Pos{
 				X: current.X + delta.X,
-				Y: current.X + delta.Y,
+				Y: current.Y + delta.Y,
 			}
 
 			if visited[next] {
@@ -190,4 +190,15 @@ func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entit
 			queue = append(queue, next)
 		}
 	}
+
+	path := []entity.Pos{}
+	cur := target
+
+	// записываем путь наоборот от игрока к монстру
+	for cur != start {
+		path = append(path, cur)
+		cur = parent[cur]
+	}
+
+	path = append(path, start)
 }
