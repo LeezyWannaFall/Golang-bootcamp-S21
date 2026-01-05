@@ -25,14 +25,22 @@ var DirectionDeltas = map[entity.Direction]entity.Pos{
 }
 
 
-func CharacterOutsideBorder(characterCoords, room *entity.Object) bool {
-	return (characterCoords.X+characterCoords.W-1 >= room.X+room.W-1) ||
-		(characterCoords.X <= room.X) ||
-		(characterCoords.Y <= room.Y) ||
-		(characterCoords.Y+characterCoords.H-1 >= room.Y+room.H-1)
+func IsOutsideRoom(char entity.Object, room entity.Room) bool {
+	return char.X < room.Coordinates.X ||
+           char.X + char.W - 1 >= room.Coordinates.X+room.Coordinates.W ||
+           char.Y < room.Coordinates.Y ||
+           char.Y + char.H - 1 >= room.Coordinates.Y+room.Coordinates.H
 }
 
-func MoveCharacterByDirection(direction entity.Direction, characterGeometry *entity.Object) {
+func IsOutsideLevel(pos entity.Pos, level *entity.Level) bool {
+	bounds := level.Coordinates
+	return pos.X < bounds.X ||
+        pos.X >= bounds.X + bounds.W ||
+        pos.Y < bounds.Y ||
+        pos.Y >= bounds.Y + bounds.H
+}
+
+func MoveCharacterByDirection(direction entity.Direction, characterGeometry *entity.Pos) {
 	switch direction {
 	case entity.Forward:
 		characterGeometry.Y--
@@ -120,15 +128,50 @@ func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Pl
 	}
 }
 
+func MovePlayer(player *entity.Player, level *entity.Level, direction entity.Direction) {
+	coords := entity.Pos{
+		X: player.BaseStats.Pos.X,
+		Y: player.BaseStats.Pos.Y,
+	}
+
+	switch direction {
+	case entity.Forward:
+		player.BaseStats.Pos.Y--
+	case entity.Back:
+		player.BaseStats.Pos.Y++
+	case entity.Left:
+		player.BaseStats.Pos.X--
+	case entity.Right:
+		player.BaseStats.Pos.X++
+	default:
+		// Do nothing
+	}
+
+	newcoords := entity.Pos{
+		X: player.BaseStats.Pos.X,
+		Y: player.BaseStats.Pos.Y,
+	}
+
+	if IsOutsideLevel(newcoords, level) || !IsPassable(newcoords, level) {
+		player.BaseStats.Pos.X = coords.X
+		player.BaseStats.Pos.Y = coords.Y
+	}
+}
+
 func PatternMonsters(monster *entity.Monster, level *entity.Level) {
 	for try := 0; try < MAX_TRIES_TO_MOVE; try++ {
-		coords := monster.Stats.Pos
-		direction := entity.Direction(logic.GetRandomInRange(0, SIMPLE_DIRECTIONS))
-		MoveCharacterByDirection(direction, &coords)
+		XYcoords := entity.Pos{
+			X: monster.Stats.Pos.X,
+			Y: monster.Stats.Pos.Y,
+		}
 
-		if !CheckOutsideBorder(&coords, level) && CheckUnoccupiedLevel(&coords, level) {
+		direction := entity.Direction(logic.GetRandomInRange(0, SIMPLE_DIRECTIONS - 1))
+		MoveCharacterByDirection(direction, &XYcoords)
+
+		if !IsOutsideLevel(XYcoords, level) && IsPassable(XYcoords, level) {
             // Если ход допустим, обновляем координаты монстра
-            monster.Stats.Pos = coords
+            monster.Stats.Pos.X = XYcoords.X
+			monster.Stats.Pos.Y = XYcoords.Y
             monster.Dir = direction
             return
         }
@@ -284,4 +327,14 @@ func SkipNext(next entity.Pos, level *entity.Level, visited map[entity.Pos]bool)
 	}
 
 	return false
+}
+
+func FindCurrentRoom(pos entity.Object, level *entity.Level) *entity.Room {
+	for i := 0; i < entity.ROOMS_NUM; i++ {
+		room := &level.Rooms[i]
+		if !IsOutsideRoom(pos, *room) {
+			return room
+		}
+	}
+	return nil
 }
