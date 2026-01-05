@@ -6,6 +6,25 @@ import (
 	"roguelike/domain/logic"
 )
 
+const OGRE_STEP =                2
+const SIMPLE_DIRECTIONS =        4
+const DIAGONAL_DIRECTIONS =      4
+const ALL_DIRECTIONS =           8
+const SIMPLE_TO_DIAGONAL_SHIFT = 4
+const MAX_TRIES_TO_MOVE =       16
+
+var DirectionDeltas = map[entity.Direction]entity.Pos{
+	entity.Forward:  {X: 0, Y: -1},
+	entity.Back:     {X: 0, Y: 1},
+	entity.Left:     {X: -1, Y: 0},
+	entity.Right:    {X: 1, Y: 0},
+
+	entity.DiagonallyForwardLeft:  {X: -1, Y: -1},
+	entity.DiagonallyForwardRight: {X: 1, Y: -1},
+	entity.DiagonallyBackLeft:     {X: -1, Y: 1},
+	entity.DiagonallyBackRight:    {X: 1, Y: 1},
+}
+
 
 func CharacterOutsideBorder(characterCoords, room *entity.Object) bool {
 	return (characterCoords.X+characterCoords.W-1 >= room.X+room.W-1) ||
@@ -119,19 +138,56 @@ func IsPlayerNear(playerCoordinates *entity.Object, monster *entity.Monster) boo
 }
 
 func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entity.Player) {
-	queue := []entity.Pos{}
-	visited := make(map[entity.Pos]bool)
-	parent := make(map[entity.Pos]entity.Pos)
-
-	start := entity.Pos{
+	start := entity.Pos {
 		X: monster.Stats.Pos.X,
 		Y: monster.Stats.Pos.Y,
 	}
 
-	target := entity.Pos{
+	target := entity.Pos {
 		X: player.BaseStats.Pos.X,
 		Y: player.BaseStats.Pos.Y,
 	}
 
+	queue := []entity.Pos{start}
+	visited := make(map[entity.Pos]bool)
+	parent := make(map[entity.Pos]entity.Pos)
+
 	visited[start] = true
+
+	directions := []entity.Direction{
+		entity.Forward,
+		entity.Back,
+		entity.Left,
+		entity.Right,
+		entity.DiagonallyForwardLeft,
+		entity.DiagonallyForwardRight,
+		entity.DiagonallyBackLeft,
+		entity.DiagonallyBackRight,
+	}
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if current == target {
+			break
+		}
+
+		for _, dir := range directions {
+			delta := DirectionDeltas[dir]
+
+			next := entity.Pos{
+				X: current.X + delta.X,
+				Y: current.X + delta.Y,
+			}
+
+			if visited[next] {
+				continue
+			}
+
+			visited[next] = true
+			parent[next] = current
+			queue = append(queue, next)
+		}
+	}
 }
