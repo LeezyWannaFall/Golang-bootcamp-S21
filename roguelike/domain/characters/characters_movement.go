@@ -1,7 +1,6 @@
 package characters
 
 import (
-	"roguelike/domain/datastructs"
 	"roguelike/domain/entity"
 	"roguelike/domain/logic"
 )
@@ -61,35 +60,60 @@ func MoveCharacterByDirection(direction entity.Direction, characterGeometry *ent
 }
 
 
-func MoveMonster(monster *entity.Monster, level *entity.Level) {
+func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Player) {
 	switch monster.Type {
 	case entity.Zombie:
-		if IsPlayerNear() {
-			FindPathToPlayer()
+		if IsPlayerNear(monster, player) {
+			path := FindPathToPlayer(monster, level, *player)
+			if len(path) > 1 {
+				next := path[len(path) - 2]
+				monster.Stats.Pos.X = next.X
+				monster.Stats.Pos.Y = next.Y
+			}
 		} else {
 			patternZombie(monster, level)
 		}
 	case entity.Vampire:
-		if IsPlayerNear() {
-			FindPathToPlayer()
+		if IsPlayerNear(monster, player) {
+			path := FindPathToPlayer(monster, level, *player)
+			if len(path) > 1 {
+				next := path[len(path) - 2]
+				monster.Stats.Pos.X = next.X
+				monster.Stats.Pos.Y = next.Y
+			}
 		} else {
 			patternVampire(monster, level)			
 		}		
 	case entity.Ghost:
-		if IsPlayerNear() {
-			FindPathToPlayer()
+		if IsPlayerNear(monster, player) {
+			path := FindPathToPlayer(monster, level, *player)
+			if len(path) > 1 {
+				next := path[len(path) - 2]
+				monster.Stats.Pos.X = next.X
+				monster.Stats.Pos.Y = next.Y
+			}
 		} else {
 			patternGhost(monster, level)
 		}
 	case entity.Ogre:
-		if IsPlayerNear() {
-			FindPathToPlayer()
+		if IsPlayerNear(monster, player) {
+			path := FindPathToPlayer(monster, level, *player)
+			if len(path) > 1 {
+				next := path[len(path) - 2]
+				monster.Stats.Pos.X = next.X
+				monster.Stats.Pos.Y = next.Y
+			}
 		} else {
 			patternOgre(monster, level)
 		}
 	case entity.Snake:
-		if IsPlayerNear() {
-			FindPathToPlayer()
+		if IsPlayerNear(monster, player) {
+			path := FindPathToPlayer(monster, level, *player)
+			if len(path) > 1 {
+				next := path[len(path) - 2]
+				monster.Stats.Pos.X = next.X
+				monster.Stats.Pos.Y = next.Y
+			}
 		} else {
 			patternSnake(monster, level)
 		}
@@ -133,11 +157,23 @@ func patternSnake(monster *entity.Monster, level *entity.Level) {
 	PatternMonsters(monster, level)
 }
 
-func IsPlayerNear(playerCoordinates *entity.Object, monster *entity.Monster) bool {
-
+func getAggroRadius(hostility entity.HostilityType) int {
+    switch hostility {
+    case entity.Low: return entity.LOW_HOSTILITY_RADIUS
+    case entity.Medium: return entity.AVERAGE_HOSTILITY_RADIUS
+    case entity.High: return entity.HIGH_HOSTILITY_RADIUS
+    default: return 4
+    }
 }
 
-func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entity.Player) {
+func IsPlayerNear(monster *entity.Monster, player *entity.Player) bool {
+    dx := logic.Abs(monster.Stats.Pos.X - player.BaseStats.Pos.X)
+    dy := logic.Abs(monster.Stats.Pos.Y - player.BaseStats.Pos.Y)
+    dist := logic.Max(dx, dy) // Chebyshev для 8-dir
+    return dist <= getAggroRadius(monster.Hostility)
+}
+
+func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entity.Player) []entity.Pos {
 	start := entity.Pos {
 		X: monster.Stats.Pos.X,
 		Y: monster.Stats.Pos.Y,
@@ -181,7 +217,7 @@ func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entit
 				Y: current.Y + delta.Y,
 			}
 
-			if visited[next] {
+			if SkipNext(next, level, visited) {
 				continue
 			}
 
@@ -191,14 +227,93 @@ func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entit
 		}
 	}
 
+	if !visited[target] {
+		return nil
+	}
+
 	path := []entity.Pos{}
 	cur := target
 
-	// записываем путь наоборот от игрока к монстру
 	for cur != start {
 		path = append(path, cur)
 		cur = parent[cur]
 	}
 
 	path = append(path, start)
+
+	return path
+}
+
+func IsPassable(pos entity.Pos, level *entity.Level) bool {
+	if pos.X < level.Coordinates.X || pos.X >= level.Coordinates.X+level.Coordinates.W ||
+    	pos.Y < level.Coordinates.Y || pos.Y >= level.Coordinates.Y+level.Coordinates.H {
+    	return false
+    }
+
+	// if IsWallLevel(pos, level) {
+	// 	return false
+	// }
+
+	// Проверяем, внутри комнаты ли (и не стена)
+    for _, room := range level.Rooms {
+        r := room.Coordinates
+        if pos.X > r.X && pos.X < r.X+r.W-1 && pos.Y > r.Y && pos.Y < r.Y+r.H-1 { // внутри, не граница
+            return true
+        }
+    }
+
+    // Проверяем, внутри прохода ли 
+    for i := 0; i < level.Passages.PassagesNumber; i++ {
+        p := level.Passages.Passages[i]
+        if pos.X >= p.X && pos.X < p.X+p.W && pos.Y >= p.Y && pos.Y < p.Y+p.H { // внутри прохода
+            return true
+        }
+    }
+
+	return true
+}
+
+// func IsWallRoom(pos entity.Pos, room entity.Room) bool {
+// 	x := pos.X
+// 	y := pos.Y
+
+// 	left   := room.Coordinates.X
+// 	right  := room.Coordinates.X + room.Coordinates.W - 1
+// 	top    := room.Coordinates.Y
+// 	bottom := room.Coordinates.Y + room.Coordinates.H - 1
+
+// 	if x < left || x > right || y < top || y > bottom {
+// 		return false
+// 	}
+
+// 	if x == left || x == right || y == top || y == bottom {
+// 		return true
+// 	}
+
+// 	return false
+// }
+
+// func IsWallLevel(pos entity.Pos, level *entity.Level) bool {
+// 	for _, room := range level.Rooms {
+// 		if IsWallRoom(pos, room) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+func SkipNext(next entity.Pos, level *entity.Level, visited map[entity.Pos]bool) bool {
+	if next.X < 0 || next.X >= level.Coordinates.W || next.Y < 0 || next.Y >= level.Coordinates.H  {
+		return true
+	}
+
+	if !IsPassable(next, level) {
+		return true
+	}
+
+	if visited[next] {
+		return true
+	}
+
+	return false
 }
