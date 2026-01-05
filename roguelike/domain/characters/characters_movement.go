@@ -250,10 +250,6 @@ func IsPassable(pos entity.Pos, level *entity.Level) bool {
     	return false
     }
 
-	// if IsWallLevel(pos, level) {
-	// 	return false
-	// }
-
 	// Проверяем, внутри комнаты ли (и не стена)
     for _, room := range level.Rooms {
         r := room.Coordinates
@@ -270,42 +266,14 @@ func IsPassable(pos entity.Pos, level *entity.Level) bool {
         }
     }
 
-	return true
+	return false
 }
 
-// func IsWallRoom(pos entity.Pos, room entity.Room) bool {
-// 	x := pos.X
-// 	y := pos.Y
-
-// 	left   := room.Coordinates.X
-// 	right  := room.Coordinates.X + room.Coordinates.W - 1
-// 	top    := room.Coordinates.Y
-// 	bottom := room.Coordinates.Y + room.Coordinates.H - 1
-
-// 	if x < left || x > right || y < top || y > bottom {
-// 		return false
-// 	}
-
-// 	if x == left || x == right || y == top || y == bottom {
-// 		return true
-// 	}
-
-// 	return false
-// }
-
-// func IsWallLevel(pos entity.Pos, level *entity.Level) bool {
-// 	for _, room := range level.Rooms {
-// 		if IsWallRoom(pos, room) {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
 func SkipNext(next entity.Pos, level *entity.Level, visited map[entity.Pos]bool) bool {
-	if next.X < 0 || next.X >= level.Coordinates.W || next.Y < 0 || next.Y >= level.Coordinates.H  {
-		return true
-	}
+	if next.X < level.Coordinates.X || next.X >= level.Coordinates.X + level.Coordinates.W ||
+   		next.Y < level.Coordinates.Y || next.Y >= level.Coordinates.Y + level.Coordinates.H {
+    return true
+}
 
 	if !IsPassable(next, level) {
 		return true
