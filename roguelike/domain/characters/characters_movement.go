@@ -67,6 +67,37 @@ func MoveCharacterByDirection(direction entity.Direction, characterGeometry *ent
 	}
 }
 
+/*
+	ебаный костыль для работы с Object вместо Pos
+*/
+func MoveCharacterByDirectionObj(direction entity.Direction, characterGeometry *entity.Object) {
+	switch direction {
+	case entity.Forward:
+		characterGeometry.Y--
+	case entity.Left:
+		characterGeometry.X--
+	case entity.Right:
+		characterGeometry.X++
+	case entity.Back:
+		characterGeometry.Y++
+	case entity.DiagonallyForwardLeft:
+		characterGeometry.X--
+		characterGeometry.Y--
+	case entity.DiagonallyForwardRight:
+		characterGeometry.X++
+		characterGeometry.Y--
+	case entity.DiagonallyBackLeft:
+		characterGeometry.X--
+		characterGeometry.Y++
+	case entity.DiagonallyBackRight:
+		characterGeometry.X++
+		characterGeometry.Y++
+	case entity.Stop:
+		// Do nothing
+	}
+} 
+
+
 
 func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Player) {
 	switch monster.Type {

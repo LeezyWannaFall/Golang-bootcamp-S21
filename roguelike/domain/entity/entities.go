@@ -169,13 +169,13 @@ type Buff struct {
 }
 
 type Buffs struct {
-	MaxHealth Buff
+	MaxHealth [CONSUMABLES_TYPE_MAX_NUM]Buff
 	CurrentHealthBuffNumber int
 
-	Agility Buff
+	Agility [CONSUMABLES_TYPE_MAX_NUM]Buff
 	CurrentAgilityBuffNumber int
 
-	Strength Buff
+	Strength [CONSUMABLES_TYPE_MAX_NUM]Buff
 	CurrentStrengthBuffNumber int
 }
 
