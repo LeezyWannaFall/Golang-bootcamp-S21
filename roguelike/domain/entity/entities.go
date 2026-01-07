@@ -49,16 +49,15 @@ const (
 	Stop
 )
 
-type Object struct {
-    X    int
-    Y    int
-    W    int
-    H    int
-}
-
 type Pos struct {
 	X int
 	Y int
+}
+
+type Object struct {
+	XYcoords	 Pos
+    W    int
+    H    int
 }
 
 type Character struct {

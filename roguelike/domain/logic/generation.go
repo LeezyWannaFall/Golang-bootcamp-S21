@@ -40,8 +40,8 @@ func GenerateRooms(room []entity.Room) {
 		room[i].Coordinates.W = WidthRoom
 		room[i].Coordinates.H = HeightRoom
 
-		room[i].Coordinates.X = XCoord
-		room[i].Coordinates.Y = YCoord
+		room[i].Coordinates.XYcoords.X = XCoord
+		room[i].Coordinates.XYcoords.Y = YCoord
 	}
 }
 
@@ -76,8 +76,8 @@ func CreatePassage(XCoord, YCoord, Width, Height int, Passages *entity.Passages)
 
 	PassageCounter := Passages.PassagesNumber
 
-	Passages.Passages[PassageCounter].X = XCoord - 1
-	Passages.Passages[PassageCounter].Y = YCoord - 1
+	Passages.Passages[PassageCounter].XYcoords.X = XCoord - 1
+	Passages.Passages[PassageCounter].XYcoords.Y = YCoord - 1
 
 	Passages.Passages[PassageCounter].W = Width + 2
 	Passages.Passages[PassageCounter].H = Height + 2
@@ -90,15 +90,15 @@ func GenerateHorizontalPassage(FirstRoom, SecondRoom int, room []entity.Room, pa
 	SecondCoords := room[SecondRoom].Coordinates
 
 	// правая стена первой комнаты
-	FirstX := FirstCoords.X + FirstCoords.W - 1
-	UpRangeCoord := FirstCoords.Y + 1
-	BottomRangeCoord := FirstCoords.Y + FirstCoords.H - 2
+	FirstX := FirstCoords.XYcoords.X + FirstCoords.W - 1
+	UpRangeCoord := FirstCoords.XYcoords.Y + 1
+	BottomRangeCoord := FirstCoords.XYcoords.Y + FirstCoords.H - 2
 	FirstY := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
 	// левая стена второй комнаты
-	SecondX := SecondCoords.X
-	UpRangeCoord = SecondCoords.Y + 1
-	BottomRangeCoord = SecondCoords.Y + SecondCoords.H - 2
+	SecondX := SecondCoords.XYcoords.X
+	UpRangeCoord = SecondCoords.XYcoords.Y + 1
+	BottomRangeCoord = SecondCoords.XYcoords.Y + SecondCoords.H - 2
 	SecondY := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
 	if FirstY == SecondY {
@@ -117,14 +117,14 @@ func GenerateVerticalPassages(FirstRoom, SecondRoom int, room []entity.Room, pas
 	FirstCoords := room[FirstRoom].Coordinates
 	SecondCoords := room[SecondRoom].Coordinates
 
-	FirstY := FirstCoords.Y + FirstCoords.H
-	UpRangeCoord := FirstCoords.X + 1
-	BottomRangeCoord := FirstCoords.X + FirstCoords.W - 2
+	FirstY := FirstCoords.XYcoords.Y + FirstCoords.H
+	UpRangeCoord := FirstCoords.XYcoords.X + 1
+	BottomRangeCoord := FirstCoords.XYcoords.X + FirstCoords.W - 2
 	FirstX := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
-	SecondY := SecondCoords.Y
-	UpRangeCoord = SecondCoords.X + 1
-	BottomRangeCoord = SecondCoords.X + SecondCoords.W - 2
+	SecondY := SecondCoords.XYcoords.Y
+	UpRangeCoord = SecondCoords.XYcoords.X + 1
+	BottomRangeCoord = SecondCoords.XYcoords.X + SecondCoords.W - 2
 	SecondX := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
 	if FirstX == SecondX {
@@ -166,14 +166,14 @@ func GeneratePassages(passages *entity.Passages, rooms []entity.Room) {
 }
 
 func GenerateCoordsOfEntity(room *entity.Room, coords *entity.Object) {
-	UpperLeftX := room.Coordinates.X + 1
-	UpperLeftY := room.Coordinates.Y + 1
+	UpperLeftX := room.Coordinates.XYcoords.X + 1
+	UpperLeftY := room.Coordinates.XYcoords.Y + 1
 
-	LowerRightX := room.Coordinates.X + room.Coordinates.W - 3
-	LowerRightY := room.Coordinates.Y + room.Coordinates.H - 3
+	LowerRightX := room.Coordinates.XYcoords.X + room.Coordinates.W - 3
+	LowerRightY := room.Coordinates.XYcoords.Y + room.Coordinates.H - 3
 
-	coords.X = GetRandomInRange(UpperLeftX, LowerRightX)
-	coords.Y = GetRandomInRange(UpperLeftY, LowerRightY)
+	coords.XYcoords.X = GetRandomInRange(UpperLeftX, LowerRightX)
+	coords.XYcoords.Y = GetRandomInRange(UpperLeftY, LowerRightY)
 
 	coords.W = 1
 	coords.H = 1
@@ -200,14 +200,14 @@ func GenerateExit(level *entity.Level, playerRoom int) {
 		room := level.Rooms[exitRoom]
 
 		// отступаем от стен
-		upperLeftX := room.Coordinates.X + 2
-		upperLeftY := room.Coordinates.Y + 2
+		upperLeftX := room.Coordinates.XYcoords.X + 2
+		upperLeftY := room.Coordinates.XYcoords.Y + 2
 
 		bottomRightX := upperLeftX + room.Coordinates.W - 5
 		bottomRightY := upperLeftY + room.Coordinates.H - 5
 
-		level.EndOfLevel.X = GetRandomInRange(upperLeftX, bottomRightX)
-		level.EndOfLevel.Y = GetRandomInRange(upperLeftY, bottomRightY)
+		level.EndOfLevel.XYcoords.X = GetRandomInRange(upperLeftX, bottomRightX)
+		level.EndOfLevel.XYcoords.Y = GetRandomInRange(upperLeftY, bottomRightY)
 
 		level.EndOfLevel.W = 1
 		level.EndOfLevel.H = 1

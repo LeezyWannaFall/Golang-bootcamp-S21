@@ -156,9 +156,7 @@ func CheckUnique(monster *entity.Monster, battles_array []BattleInfo) bool {
 
 
 	for i := 0; i < MAXIMUM_FIGHTS && IsUnique; i++ {
-		enemyPos := logic.ObjCoordsToPos(battles_array[i].Enemy.Stats.Pos)
-		monsterPos := logic.ObjCoordsToPos(monster.Stats.Pos)
-		if battles_array[i].IsFighting && CheckEqualCoords(enemyPos, monsterPos) {
+		if battles_array[i].IsFighting && CheckEqualCoords(battles_array[i].Enemy.Stats.Pos.XYcoords, monster.Stats.Pos.XYcoords) {
 			IsUnique = false
 		}
 	}

@@ -25,18 +25,18 @@ var DirectionDeltas = map[entity.Direction]entity.Pos{
 }
 
 func IsOutsideRoom(char entity.Object, room entity.Room) bool {
-	return char.X < room.Coordinates.X ||
-           char.X + char.W - 1 >= room.Coordinates.X+room.Coordinates.W ||
-           char.Y < room.Coordinates.Y ||
-           char.Y + char.H - 1 >= room.Coordinates.Y+room.Coordinates.H
+	return char.XYcoords.X < room.Coordinates.XYcoords.X ||
+           char.XYcoords.X + char.W - 1 >= room.Coordinates.XYcoords.X+room.Coordinates.W ||
+           char.XYcoords.Y < room.Coordinates.XYcoords.Y ||
+           char.XYcoords.Y + char.H - 1 >= room.Coordinates.XYcoords.Y+room.Coordinates.H
 }
 
 func IsOutsideLevel(pos entity.Pos, level *entity.Level) bool {
 	bounds := level.Coordinates
-	return pos.X < bounds.X ||
-        pos.X >= bounds.X + bounds.W ||
-        pos.Y < bounds.Y ||
-        pos.Y >= bounds.Y + bounds.H
+	return pos.X < bounds.XYcoords.X ||
+        pos.X >= bounds.XYcoords.X + bounds.W ||
+        pos.Y < bounds.XYcoords.Y ||
+        pos.Y >= bounds.XYcoords.Y + bounds.H
 }
 
 func MoveCharacterByDirection(direction entity.Direction, characterGeometry *entity.Pos) {
@@ -72,25 +72,25 @@ func MoveCharacterByDirection(direction entity.Direction, characterGeometry *ent
 func MoveCharacterByDirectionObj(direction entity.Direction, characterGeometry *entity.Object) {
 	switch direction {
 	case entity.Forward:
-		characterGeometry.Y--
+		characterGeometry.XYcoords.Y--
 	case entity.Left:
-		characterGeometry.X--
+		characterGeometry.XYcoords.X--
 	case entity.Right:
-		characterGeometry.X++
+		characterGeometry.XYcoords.X++
 	case entity.Back:
-		characterGeometry.Y++
+		characterGeometry.XYcoords.Y++
 	case entity.DiagonallyForwardLeft:
-		characterGeometry.X--
-		characterGeometry.Y--
+		characterGeometry.XYcoords.X--
+		characterGeometry.XYcoords.Y--
 	case entity.DiagonallyForwardRight:
-		characterGeometry.X++
-		characterGeometry.Y--
+		characterGeometry.XYcoords.X++
+		characterGeometry.XYcoords.Y--
 	case entity.DiagonallyBackLeft:
-		characterGeometry.X--
-		characterGeometry.Y++
+		characterGeometry.XYcoords.X--
+		characterGeometry.XYcoords.Y++
 	case entity.DiagonallyBackRight:
-		characterGeometry.X++
-		characterGeometry.Y++
+		characterGeometry.XYcoords.X++
+		characterGeometry.XYcoords.Y++
 	case entity.Stop:
 		// Do nothing
 	}
@@ -100,55 +100,55 @@ func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Pl
 	switch monster.Type {
 	case entity.Zombie:
 		if IsPlayerNear(monster, player) {
-			path := FindPathToPlayer(monster, level, *player)
+			path := FindPathToPlayer(monster, level, player)
 			if len(path) > 1 {
 				next := path[len(path) - 2]
-				monster.Stats.Pos.X = next.X
-				monster.Stats.Pos.Y = next.Y
+				monster.Stats.Pos.XYcoords.X = next.X
+				monster.Stats.Pos.XYcoords.Y = next.Y
 			}
 		} else {
 			patternZombie(monster, level)
 		}
 	case entity.Vampire:
 		if IsPlayerNear(monster, player) {
-			path := FindPathToPlayer(monster, level, *player)
+			path := FindPathToPlayer(monster, level, player)
 			if len(path) > 1 {
 				next := path[len(path) - 2]
-				monster.Stats.Pos.X = next.X
-				monster.Stats.Pos.Y = next.Y
+				monster.Stats.Pos.XYcoords.X = next.X
+				monster.Stats.Pos.XYcoords.Y = next.Y
 			}
 		} else {
 			patternVampire(monster, level)
 		}
 	case entity.Ghost:
 		if IsPlayerNear(monster, player) {
-			path := FindPathToPlayer(monster, level, *player)
+			path := FindPathToPlayer(monster, level, player)
 			if len(path) > 1 {
 				next := path[len(path) - 2]
-				monster.Stats.Pos.X = next.X
-				monster.Stats.Pos.Y = next.Y
+				monster.Stats.Pos.XYcoords.X = next.X
+				monster.Stats.Pos.XYcoords.Y = next.Y
 			}
 		} else {
 			patternGhost(monster, level)
 		}
 	case entity.Ogre:
 		if IsPlayerNear(monster, player) {
-			path := FindPathToPlayer(monster, level, *player)
+			path := FindPathToPlayer(monster, level, player)
 			if len(path) > 1 {
 				next := path[len(path) - 2]
-				monster.Stats.Pos.X = next.X
-				monster.Stats.Pos.Y = next.Y
+				monster.Stats.Pos.XYcoords.X = next.X
+				monster.Stats.Pos.XYcoords.Y = next.Y
 			}
 		} else {
 			patternOgre(monster, level)
 		}
 	case entity.Snake:
 		if IsPlayerNear(monster, player) {
-			path := FindPathToPlayer(monster, level, *player)
+			path := FindPathToPlayer(monster, level, player)
 			if len(path) > 1 {
 				next := path[len(path) - 2]
-				monster.Stats.Pos.X = next.X
-				monster.Stats.Pos.Y = next.Y
+				monster.Stats.Pos.XYcoords.X = next.X
+				monster.Stats.Pos.XYcoords.Y = next.Y
 			}
 		} else {
 			patternSnake(monster, level)
@@ -157,48 +157,43 @@ func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Pl
 }
 
 func MovePlayer(player *entity.Player, level *entity.Level, direction entity.Direction) {
-	coords := entity.Pos{
-		X: player.BaseStats.Pos.X,
-		Y: player.BaseStats.Pos.Y,
-	}
-
 	switch direction {
 	case entity.Forward:
-		player.BaseStats.Pos.Y--
+		player.BaseStats.Pos.XYcoords.Y--
 	case entity.Back:
-		player.BaseStats.Pos.Y++
+		player.BaseStats.Pos.XYcoords.Y++
 	case entity.Left:
-		player.BaseStats.Pos.X--
+		player.BaseStats.Pos.XYcoords.X--
 	case entity.Right:
-		player.BaseStats.Pos.X++
+		player.BaseStats.Pos.XYcoords.X++
 	default:
 		// Do nothing
 	}
 
 	newcoords := entity.Pos{
-		X: player.BaseStats.Pos.X,
-		Y: player.BaseStats.Pos.Y,
+		X: player.BaseStats.Pos.XYcoords.X,
+		Y: player.BaseStats.Pos.XYcoords.Y,
 	}
 
-	if IsOutsideLevel(newcoords, level) || !IsPassable(newcoords, level) {
-		player.BaseStats.Pos.X = coords.X
-		player.BaseStats.Pos.Y = coords.Y
+	if !IsOutsideLevel(newcoords, level) && IsPassable(newcoords, level) {
+		player.BaseStats.Pos.XYcoords.X = newcoords.X
+		player.BaseStats.Pos.XYcoords.Y = newcoords.Y
 	}
 }
 
 func patternZombie(monster *entity.Monster, level *entity.Level) {
 	for try := 0; try < MAX_TRIES_TO_MOVE; try++ {
-		XYcoords := entity.Pos{
-			X: monster.Stats.Pos.X,
-			Y: monster.Stats.Pos.Y,
+		XY := entity.Pos{
+			X: monster.Stats.Pos.XYcoords.X,
+			Y: monster.Stats.Pos.XYcoords.Y,
 		}
 
 		direction := entity.Direction(logic.GetRandomInRange(0, SIMPLE_DIRECTIONS - 1))
-		MoveCharacterByDirection(direction, &XYcoords)
+		MoveCharacterByDirection(direction, &XY)
 
-		if !IsOutsideLevel(XYcoords, level) && IsPassable(XYcoords, level) {
-			monster.Stats.Pos.X = XYcoords.X
-			monster.Stats.Pos.Y = XYcoords.Y
+		if !IsOutsideLevel(XY, level) && IsPassable(XY, level) {
+			monster.Stats.Pos.XYcoords.X = XY.X
+			monster.Stats.Pos.XYcoords.Y = XY.Y
 			monster.Dir = direction
 			return
 		}
@@ -207,17 +202,17 @@ func patternZombie(monster *entity.Monster, level *entity.Level) {
 
 func patternVampire(monster *entity.Monster, level *entity.Level) {
 	for try := 0; try < MAX_TRIES_TO_MOVE; try++ {
-		XYcoords := entity.Pos{
-			X: monster.Stats.Pos.X,
-			Y: monster.Stats.Pos.Y,
+		XY := entity.Pos{
+			X: monster.Stats.Pos.XYcoords.X,
+			Y: monster.Stats.Pos.XYcoords.Y,
 		}
 
 		direction := entity.Direction(logic.GetRandomInRange(0, ALL_DIRECTIONS-1))
-		MoveCharacterByDirection(direction, &XYcoords)
+		MoveCharacterByDirection(direction, &XY)
 
-		if !IsOutsideLevel(XYcoords, level) && IsPassable(XYcoords, level) {
-			monster.Stats.Pos.X = XYcoords.X
-			monster.Stats.Pos.Y = XYcoords.Y
+		if !IsOutsideLevel(XY, level) && IsPassable(XY, level) {
+			monster.Stats.Pos.XYcoords.X = XY.X
+			monster.Stats.Pos.XYcoords.Y = XY.Y
 			monster.Dir = direction
 			return
 		}
@@ -226,8 +221,7 @@ func patternVampire(monster *entity.Monster, level *entity.Level) {
 
 func patternGhost(monster *entity.Monster, level *entity.Level) {
 	ghostObj := entity.Object{
-		X: monster.Stats.Pos.X,
-		Y: monster.Stats.Pos.Y,
+		XYcoords: entity.Pos{X: monster.Stats.Pos.XYcoords.X, Y: monster.Stats.Pos.XYcoords.Y,},
 		W: 1,
 		H: 1,
 	}
@@ -238,8 +232,8 @@ func patternGhost(monster *entity.Monster, level *entity.Level) {
 	}
 
 	for try := 0; try < MAX_TRIES_TO_MOVE; try++ {
-		randomX := logic.GetRandomInRange(currentRoom.Coordinates.X+1, currentRoom.Coordinates.X+currentRoom.Coordinates.W-2)
-		randomY := logic.GetRandomInRange(currentRoom.Coordinates.Y+1, currentRoom.Coordinates.Y+currentRoom.Coordinates.H-2)
+		randomX := logic.GetRandomInRange(currentRoom.Coordinates.XYcoords.X + 1, currentRoom.Coordinates.XYcoords.X + currentRoom.Coordinates.W - 2)
+		randomY := logic.GetRandomInRange(currentRoom.Coordinates.XYcoords.Y + 1, currentRoom.Coordinates.XYcoords.Y + currentRoom.Coordinates.H - 2)
 
 		newPos := entity.Pos{
 			X: randomX,
@@ -247,8 +241,8 @@ func patternGhost(monster *entity.Monster, level *entity.Level) {
 		}
 
 		if IsPassable(newPos, level) {
-			monster.Stats.Pos.X = newPos.X
-			monster.Stats.Pos.Y = newPos.Y
+			monster.Stats.Pos.XYcoords.X = newPos.X
+			monster.Stats.Pos.XYcoords.Y = newPos.Y
 			return
 		}
 	}
@@ -262,17 +256,17 @@ func patternOgre(monster *entity.Monster, level *entity.Level) {
 
 func patternSnake(monster *entity.Monster, level *entity.Level) {
 	for try := 0; try < MAX_TRIES_TO_MOVE; try++ {
-		XYcoords := entity.Pos{
-			X: monster.Stats.Pos.X,
-			Y: monster.Stats.Pos.Y,
+		XY := entity.Pos{
+			X: monster.Stats.Pos.XYcoords.X,
+			Y: monster.Stats.Pos.XYcoords.Y,
 		}
 
 		direction := entity.Direction(logic.GetRandomInRange(0, DIAGONAL_DIRECTIONS-1) + SIMPLE_TO_DIAGONAL_SHIFT)
-		MoveCharacterByDirection(direction, &XYcoords)
+		MoveCharacterByDirection(direction, &XY)
 
-		if !IsOutsideLevel(XYcoords, level) && IsPassable(XYcoords, level) {
-			monster.Stats.Pos.X = XYcoords.X
-			monster.Stats.Pos.Y = XYcoords.Y
+		if !IsOutsideLevel(XY, level) && IsPassable(XY, level) {
+			monster.Stats.Pos.XYcoords.X = XY.X
+			monster.Stats.Pos.XYcoords.Y = XY.Y
 			monster.Dir = direction
 			return
 		}
@@ -293,23 +287,24 @@ func getAggroRadius(hostility entity.HostilityType) int {
 }
 
 func IsPlayerNear(monster *entity.Monster, player *entity.Player) bool {
-	dx := logic.Abs(monster.Stats.Pos.X - player.BaseStats.Pos.X)
-	dy := logic.Abs(monster.Stats.Pos.Y - player.BaseStats.Pos.Y)
+	dx := logic.Abs(monster.Stats.Pos.XYcoords.X - player.BaseStats.Pos.XYcoords.X)
+	dy := logic.Abs(monster.Stats.Pos.XYcoords.Y - player.BaseStats.Pos.XYcoords.Y)
 	dist := logic.Max(dx, dy) // Chebyshev для 8-dir
 	return dist <= getAggroRadius(monster.Hostility)
 }
 
-func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entity.Player) []entity.Pos {
+func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player *entity.Player) []entity.Pos {
 	start := entity.Pos{
-		X: monster.Stats.Pos.X,
-		Y: monster.Stats.Pos.Y,
+		X: monster.Stats.Pos.XYcoords.X,
+		Y: monster.Stats.Pos.XYcoords.Y,
 	}
 
 	target := entity.Pos{
-		X: player.BaseStats.Pos.X,
-		Y: player.BaseStats.Pos.Y,
+		X: player.BaseStats.Pos.XYcoords.X,
+		Y: player.BaseStats.Pos.XYcoords.Y,
 	}
 
+	aggroRadius := getAggroRadius(monster.Hostility)
 	queue := []entity.Pos{start}
 	visited := make(map[entity.Pos]bool)
 	parent := make(map[entity.Pos]entity.Pos)
@@ -343,6 +338,10 @@ func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entit
 				Y: current.Y + delta.Y,
 			}
 
+			if DistanceChebyshev(start, next) > aggroRadius {
+				continue
+			}
+
 			if SkipNext(next, level, visited) {
 				continue
 			}
@@ -371,15 +370,15 @@ func FindPathToPlayer(monster *entity.Monster, level *entity.Level, player entit
 }
 
 func IsPassable(pos entity.Pos, level *entity.Level) bool {
-	if pos.X < level.Coordinates.X || pos.X >= level.Coordinates.X+level.Coordinates.W ||
-		pos.Y < level.Coordinates.Y || pos.Y >= level.Coordinates.Y+level.Coordinates.H {
+	if pos.X < level.Coordinates.XYcoords.X || pos.X >= level.Coordinates.XYcoords.X + level.Coordinates.W ||
+		pos.Y < level.Coordinates.XYcoords.Y || pos.Y >= level.Coordinates.XYcoords.Y + level.Coordinates.H {
 		return false
 	}
 
 	// Проверяем, внутри комнаты ли (и не стена)
 	for _, room := range level.Rooms {
 		r := room.Coordinates
-		if pos.X > r.X && pos.X < r.X+r.W-1 && pos.Y > r.Y && pos.Y < r.Y+r.H-1 { // внутри, не граница
+		if pos.X > r.XYcoords.X && pos.X < r.XYcoords.X+r.W-1 && pos.Y > r.XYcoords.Y && pos.Y < r.XYcoords.Y + r.H - 1 { // внутри, не граница
 			return true
 		}
 	}
@@ -387,7 +386,7 @@ func IsPassable(pos entity.Pos, level *entity.Level) bool {
 	// Проверяем, внутри прохода ли
 	for i := 0; i < level.Passages.PassagesNumber; i++ {
 		p := level.Passages.Passages[i]
-		if pos.X >= p.X && pos.X < p.X+p.W && pos.Y >= p.Y && pos.Y < p.Y+p.H { // внутри прохода
+		if pos.X >= p.XYcoords.X && pos.X < p.XYcoords.X + p.W && pos.Y >= p.XYcoords.Y && pos.Y < p.XYcoords.Y + p.H { // внутри прохода
 			return true
 		}
 	}
@@ -396,8 +395,8 @@ func IsPassable(pos entity.Pos, level *entity.Level) bool {
 }
 
 func SkipNext(next entity.Pos, level *entity.Level, visited map[entity.Pos]bool) bool {
-	if next.X < level.Coordinates.X || next.X >= level.Coordinates.X+level.Coordinates.W ||
-		next.Y < level.Coordinates.Y || next.Y >= level.Coordinates.Y+level.Coordinates.H {
+	if next.X < level.Coordinates.XYcoords.X || next.X >= level.Coordinates.XYcoords.X + level.Coordinates.W ||
+		next.Y < level.Coordinates.XYcoords.Y || next.Y >= level.Coordinates.XYcoords.Y + level.Coordinates.H {
 		return true
 	}
 
@@ -420,4 +419,14 @@ func FindCurrentRoom(pos entity.Object, level *entity.Level) *entity.Room {
 		}
 	}
 	return nil
+}
+
+func DistanceChebyshev(first, second entity.Pos) int {
+	dx := logic.Abs(first.X - second.X)
+	dy := logic.Abs(first.Y - second.Y)
+
+	if dx > dy {
+		return dx
+	}
+	return dy
 }

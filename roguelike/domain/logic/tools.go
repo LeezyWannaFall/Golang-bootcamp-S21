@@ -1,8 +1,8 @@
 package logic
 
-import (
-	"roguelike/domain/entity"
-)
+// import (
+// 	"roguelike/domain/entity"
+// )
 
 func Abs(x int) int {
 	if x < 0 {
@@ -25,11 +25,11 @@ func Max(a, b int) int {
 	return b
 }
 
-func ObjCoordsToPos(object entity.Object) entity.Pos {
-	pos := entity.Pos{
-		X: object.X,
-		Y: object.Y,
-	}
+// func ObjCoordsToPos(object entity.Object) entity.Pos {
+// 	pos := entity.Pos{
+// 		X: object.X,
+// 		Y: object.Y,
+// 	}
 
-	return pos
-}
+// 	return pos
+// }
