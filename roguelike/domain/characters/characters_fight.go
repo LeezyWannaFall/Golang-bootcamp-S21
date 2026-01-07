@@ -3,6 +3,7 @@ package characters
 import (
 	"math/rand"
 	"roguelike/domain/entity"
+	"roguelike/domain/logic"
 )
 
 const INITIAL_HIT_CHANCE =     70
@@ -136,4 +137,30 @@ func VampireDamageFormula(player *entity.Player) float64 {
 
 func HitChanceFormula(attackerAgility int, defenderAgility int) int {
 	return int(AGILITY_FACTOR * float64(attackerAgility - defenderAgility - STANDART_AGILITY))
+}
+
+func CheckEqualCoords(firstCoords, secondCoords entity.Pos) bool {
+	return firstCoords.X == secondCoords.X && firstCoords.Y == secondCoords.Y
+}
+
+func CheckIfNeighborTile(first, second entity.Pos) bool {
+	return (first.X == second.X && logic.Abs(first.Y - second.Y) == 1) || (first.Y == second.Y && logic.Abs(first.X - second.X) == 1)
+}
+
+func CheckIfDiagonallyNeighborTile(first, second entity.Pos) bool {
+	return logic.Abs(first.X - second.X) == 1 && logic.Abs(first.Y - second.Y) == 1
+}
+
+func CheckUnique(monster *entity.Monster, battles_array []BattleInfo) bool {
+	IsUnique := true
+
+
+	for i := 0; i < MAXIMUM_FIGHTS && IsUnique; i++ {
+		enemyPos := logic.ObjCoordsToPos(battles_array[i].Enemy.Stats.Pos)
+		monsterPos := logic.ObjCoordsToPos(monster.Stats.Pos)
+		if battles_array[i].IsFighting && CheckEqualCoords(enemyPos, monsterPos) {
+			IsUnique = false
+		}
+	}
+	return IsUnique
 }

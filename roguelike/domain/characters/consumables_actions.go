@@ -20,6 +20,9 @@ func EqualWeapons(weapon1, weapon2 entity.Weapon) bool {
 
 func CheckConsumables(player *entity.Player, room entity.Room) {
 	WasConsumed := false
+	for i := 0; i < room.Consumables.ElixirNumber && !WasConsumed && player.Backpack.ElixirNumber < entity.CONSUMABLES_TYPE_MAX_NUM {
+		if CheckEqua
+	}
 }
 
 func TakeScroll(backpack entity.Backpack, scroll entity.Scroll, room entity.Room) {
