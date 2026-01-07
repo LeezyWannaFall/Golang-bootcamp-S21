@@ -30,8 +30,7 @@ func NewGameSession() *GameSession {
 		Player: &entity.Player{
 			BaseStats: entity.Character{
 				Pos: entity.Object{
-					X: 0,
-					Y: 0,
+					XYcoords: entity.Pos{X: 0, Y: 0}, // fix #1: move pos to object
 					W: 1,
 					H: 1,
 				},
@@ -147,6 +146,6 @@ func (gs *GameSession) UpdateCurrentRoom() {
 
 // isInsideRoom проверяет, находится ли позиция внутри комнаты
 func isInsideRoom(pos *entity.Object, roomCoords *entity.Object) bool {
-	return pos.X >= roomCoords.X && pos.X < roomCoords.X+roomCoords.W &&
-		pos.Y >= roomCoords.Y && pos.Y < roomCoords.Y+roomCoords.H
+	return pos.XYcoords.X >= roomCoords.XYcoords.X && pos.XYcoords.X < roomCoords.XYcoords.X+roomCoords.W &&
+		pos.XYcoords.Y >= roomCoords.XYcoords.Y && pos.XYcoords.Y < roomCoords.XYcoords.Y+roomCoords.H // fix #2: move pos to object
 }

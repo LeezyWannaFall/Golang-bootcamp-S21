@@ -20,7 +20,7 @@ func EqualWeapons(weapon1, weapon2 entity.Weapon) bool {
 
 func CheckConsumables(player *entity.Player, room entity.Room) {
 	WasConsumed := false
-	for i := 0; i < room.Consumables.ElixirNumber && !WasConsumed && player.Backpack.ElixirNumber < entity.CONSUMABLES_TYPE_MAX_NUM {
+	for i := 0; i < room.Consumables.ElixirNumber && !WasConsumed && player.Backpack.ElixirNumber < entity.CONSUMABLES_TYPE_MAX_NUM; i++ {
 		if CheckEqualCoords()
 	}
 }
@@ -46,6 +46,10 @@ func DeleteFromRoom(room entity.Room, consumableCoords entity.Object, consumable
 }
 
 func ThrowOnGround(player entity.Player, room *entity.Room, weapon entity.Weapon) {
+
+}
+
+func CheckUnoccupiedRoom(room *entity.Room, coords entity.Object) bool {
 
 }
 

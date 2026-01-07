@@ -52,7 +52,7 @@ func (gs *GameSession) ProcessPlayerTurn(direction entity.Direction) {
 		gs.InitiateBattle(monster)
 	}
 
-	if prevPos.X != gs.Player.BaseStats.Pos.X || prevPos.Y != gs.Player.BaseStats.Pos.Y {
+	if prevPos.XYcoords.X != gs.Player.BaseStats.Pos.XYcoords.X || prevPos.XYcoords.Y != gs.Player.BaseStats.Pos.XYcoords.Y {
 		gs.IncrementTilesTraveled()
 	}
 
@@ -96,7 +96,7 @@ func (gs *GameSession) FindMonsterAtPosition(pos *entity.Object) *entity.Monster
 		room := &gs.CurrentLevel.Rooms[i]
 		for j := 0; j < room.MonsterNumbers; j++ {
 			monster := &room.Monsters[j]
-			if monster.Stats.Pos.X == pos.X && monster.Stats.Pos.Y == pos.Y {
+			if monster.Stats.Pos.XYcoords.X == pos.XYcoords.X && monster.Stats.Pos.XYcoords.Y == pos.XYcoords.Y {
 				return monster
 			}
 		}
@@ -107,7 +107,7 @@ func (gs *GameSession) FindMonsterAtPosition(pos *entity.Object) *entity.Monster
 func (gs *GameSession) IsPlayerAtExit() bool {
 	playerPos := &gs.Player.BaseStats.Pos
 	exit := &gs.CurrentLevel.EndOfLevel
-	return playerPos.X == exit.X && playerPos.Y == exit.Y
+	return playerPos.XYcoords.X == exit.XYcoords.X && playerPos.XYcoords.Y == exit.XYcoords.Y
 }
 
 func (gs *GameSession) CheckGameOver() bool {
