@@ -67,7 +67,7 @@ func MoveCharacterByDirection(direction entity.Direction, characterGeometry *ent
 }
 
 /*
-костыль для работы с Object вместо Pos
+для работы с Object вместо Pos
 */
 func MoveCharacterByDirectionObj(direction entity.Direction, characterGeometry *entity.Object) {
 	switch direction {
