@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"roguelike/domain/characters"
 	"roguelike/domain/datastructs"
 	"roguelike/domain/entity"
 )
@@ -281,7 +282,7 @@ func GenerateMonsters(level *entity.Level, playerRoom int) {
 
 			for {
 				GenerateCoordsOfEntity(&level.Rooms[room], coords)
-				if CheckUnoccupiedRoom(coords, &level.Rooms[room]) {
+				if characters.CheckUnoccupiedRoom(&level.Rooms[room], *coords) {
 					break
 				}
 			}
@@ -311,16 +312,16 @@ func GenerateFoodData(food *entity.Food, player *entity.Player) {
 
 func GenerateFood(room *entity.Room, player *entity.Player) {
 	CountFood := room.Consumables.FoodNumber
-	Coords := &room.Consumables.RoomFood[CountFood].Geometry
+	Coords := &room.Consumables.Food[CountFood].Geometry
 
 	for {
 		GenerateCoordsOfEntity(room, Coords)
-		if CheckUnoccupiedRoom(Coords, room) {
+		if characters.CheckUnoccupiedRoom(room, *Coords) {
 			break
 		}
 	}
 
-	GenerateFoodData(&room.Consumables.RoomFood[CountFood].Food, player)
+	GenerateFoodData(&room.Consumables.Food[CountFood].Food, player)
 	room.Consumables.FoodNumber++
 }
 

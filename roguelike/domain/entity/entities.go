@@ -123,16 +123,16 @@ type WeaponRoom struct {
 }
 
 type ConsumablesRoom struct {
-	RoomFood  [MAX_CONSUMABLES_PER_ROOM]FoodRoom
+	Food  [MAX_CONSUMABLES_PER_ROOM]FoodRoom
 	FoodNumber int
 
-	RoomElixir [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
+	Elixirs [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
 	ElixirNumber int
 
-	RoomScroll [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
+	Scrolls [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
 	ScrollNumber int
 
-	WeaponRoom [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
+	Weapons [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
 	WeaponNumber int
 }
 
@@ -147,18 +147,18 @@ type Room struct {
 type Backpack struct {
 	CurrentSize int
 
-	Foods Food
+	Foods [CONSUMABLES_TYPE_MAX_NUM]Food
 	FoodNumber int
 
-	Elixirs Elixir
+	Elixirs [CONSUMABLES_TYPE_MAX_NUM]Elixir
 	ElixirNumber int
 
-	Scrols Scroll
+	Scrolls [CONSUMABLES_TYPE_MAX_NUM]Scroll
 	ScrollNumber int
 
 	Treasures Treasure
 
-	Weapons Weapon
+	Weapons [CONSUMABLES_TYPE_MAX_NUM]Weapon
 	WeaponNumber int
 }
 
