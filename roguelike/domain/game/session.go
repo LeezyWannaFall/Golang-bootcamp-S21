@@ -24,20 +24,21 @@ type GameSession struct {
 	IsRunning    bool // Флаг активности игровой сессии
 }
 
-// NewGameSession создает новую игровую сессию с начальными параметрами
 func NewGameSession() *GameSession {
 	return &GameSession{
 		Player: &entity.Player{
 			BaseStats: entity.Character{
 				Pos: entity.Object{
-					XYcoords: entity.Pos{X: 0, Y: 0}, // fix #1: move pos to object
+					XYcoords: entity.Pos{
+						X: 0,
+						Y: 0,
+					},
 					W: 1,
 					H: 1,
 				},
-				Health:    500,
-				// MaxHealth: 500, не нашел в структуре Character
-				Agility:   70,
-				Strength:  70,
+				Health:   500,
+				Agility:  70,
+				Strength: 70,
 			},
 			RegenLimit: 500,
 			Backpack: entity.Backpack{
@@ -124,7 +125,6 @@ func (gs *GameSession) IncrementTilesTraveled() {
 	gs.Statistics.TilesTraveled++
 }
 
-// GetCurrentRoom возвращает указатель на текущую комнату игрока
 func (gs *GameSession) GetCurrentRoom() *entity.Room {
 	if gs.CurrentRoom >= 0 && gs.CurrentRoom < entity.ROOMS_NUM {
 		return &gs.CurrentLevel.Rooms[gs.CurrentRoom]
@@ -132,7 +132,6 @@ func (gs *GameSession) GetCurrentRoom() *entity.Room {
 	return nil
 }
 
-// UpdateCurrentRoom обновляет индекс текущей комнаты на основе позиции игрока
 func (gs *GameSession) UpdateCurrentRoom() {
 	playerPos := &gs.Player.BaseStats.Pos
 	for i := 0; i < entity.ROOMS_NUM; i++ {
@@ -144,8 +143,7 @@ func (gs *GameSession) UpdateCurrentRoom() {
 	}
 }
 
-// isInsideRoom проверяет, находится ли позиция внутри комнаты
 func isInsideRoom(pos *entity.Object, roomCoords *entity.Object) bool {
 	return pos.XYcoords.X >= roomCoords.XYcoords.X && pos.XYcoords.X < roomCoords.XYcoords.X+roomCoords.W &&
-		pos.XYcoords.Y >= roomCoords.XYcoords.Y && pos.XYcoords.Y < roomCoords.XYcoords.Y+roomCoords.H // fix #2: move pos to object
+		pos.XYcoords.Y >= roomCoords.XYcoords.Y && pos.XYcoords.Y < roomCoords.XYcoords.Y+roomCoords.H
 }

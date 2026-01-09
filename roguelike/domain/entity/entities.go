@@ -85,15 +85,15 @@ type Food struct {
 }
 
 type Elixir struct {
-	duration time.Duration
-	stat 	 StatType
-	increase int
+	Duration time.Duration
+	Stat     StatType
+	Increase int
 	Name     string
 }
 
 type Scroll struct {
-	stat 	 StatType
-	increase int
+	Stat     StatType
+	Increase int
 	Name     string
 }
 
@@ -123,16 +123,16 @@ type WeaponRoom struct {
 }
 
 type ConsumablesRoom struct {
-	Food  [MAX_CONSUMABLES_PER_ROOM]FoodRoom
+	RoomFood  [MAX_CONSUMABLES_PER_ROOM]FoodRoom
 	FoodNumber int
 
-	Elixirs [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
+	RoomElixir [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
 	ElixirNumber int
 
-	Scrolls [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
+	RoomScroll [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
 	ScrollNumber int
 
-	Weapons [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
+	WeaponRoom [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
 	WeaponNumber int
 }
 
@@ -164,7 +164,7 @@ type Backpack struct {
 
 type Buff struct {
 	StatIncrease int
-	EffectEnd time.Duration
+	EffectEnd int64
 }
 
 type Buffs struct {

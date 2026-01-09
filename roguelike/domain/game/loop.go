@@ -13,7 +13,7 @@ func (gs *GameSession) InitLevel() {
 	gs.CurrentRoom = logic.GeneratePlayer(gs.CurrentLevel.Rooms[:], gs.Player)
 	logic.GenerateExit(gs.CurrentLevel, gs.CurrentRoom)
 	logic.GenerateMonsters(gs.CurrentLevel, gs.CurrentRoom)
-	// TODO: добавить генерацию всех типов предметов
+	logic.GenerateConsumables(gs.CurrentLevel, gs.CurrentRoom, gs.Player, gs.CurrentLevel.LevelNumber)
 }
 
 func (gs *GameSession) GameLoop() {
@@ -42,9 +42,9 @@ func (gs *GameSession) GameLoop() {
 
 func (gs *GameSession) ProcessPlayerTurn(direction entity.Direction) {
 	prevPos := gs.Player.BaseStats.Pos
-	characters.MoveCharacterByDirectionObj(direction, &gs.Player.BaseStats.Pos) // move using Object (костыль, но пока что так)
+	characters.MoveCharacterByDirectionObj(direction, &gs.Player.BaseStats.Pos)
 
-	// TODO: добавить проверку через CheckOutsideBorder
+	characters.CheckTempEffectEnd(gs.Player)
 
 	monster := gs.FindMonsterAtPosition(&gs.Player.BaseStats.Pos)
 	if monster != nil {
@@ -56,7 +56,11 @@ func (gs *GameSession) ProcessPlayerTurn(direction entity.Direction) {
 		gs.IncrementTilesTraveled()
 	}
 
-	// TODO: добавить логику подбора предметов
+	gs.UpdateCurrentRoom()
+	currentRoom := gs.GetCurrentRoom()
+	if currentRoom != nil {
+		gs.CheckAndPickupItems(currentRoom)
+	}
 }
 
 func (gs *GameSession) ProcessMonstersTurn() {
@@ -118,4 +122,81 @@ func (gs *GameSession) NextLevel() {
 	gs.CurrentLevel.LevelNumber++
 	gs.Statistics.DeepestLevel = gs.CurrentLevel.LevelNumber
 	gs.InitLevel()
+}
+
+func (gs *GameSession) CheckAndPickupItems(room *entity.Room) {
+	playerPos := &gs.Player.BaseStats.Pos
+	wasConsumed := false
+
+	for i := 0; i < room.Consumables.ElixirNumber && !wasConsumed && gs.Player.Backpack.ElixirNumber < entity.CONSUMABLES_TYPE_MAX_NUM; i++ {
+		itemPos := &room.Consumables.RoomElixir[i].Geometry
+		if playerPos.XYcoords.X == itemPos.XYcoords.X && playerPos.XYcoords.Y == itemPos.XYcoords.Y {
+			gs.Player.Backpack.Elixirs[gs.Player.Backpack.ElixirNumber] = room.Consumables.RoomElixir[i].Elixir
+			gs.Player.Backpack.ElixirNumber++
+			gs.Player.Backpack.CurrentSize++
+			gs.removeElixirFromRoom(room, i)
+			wasConsumed = true
+		}
+	}
+
+	for i := 0; i < room.Consumables.ScrollNumber && !wasConsumed && gs.Player.Backpack.ScrollNumber < entity.CONSUMABLES_TYPE_MAX_NUM; i++ {
+		itemPos := &room.Consumables.RoomScroll[i].Geometry
+		if playerPos.XYcoords.X == itemPos.XYcoords.X && playerPos.XYcoords.Y == itemPos.XYcoords.Y {
+			gs.Player.Backpack.Scrolls[gs.Player.Backpack.ScrollNumber] = room.Consumables.RoomScroll[i].Scroll
+			gs.Player.Backpack.ScrollNumber++
+			gs.Player.Backpack.CurrentSize++
+			gs.removeScrollFromRoom(room, i)
+			wasConsumed = true
+		}
+	}
+
+	for i := 0; i < room.Consumables.FoodNumber && !wasConsumed && gs.Player.Backpack.FoodNumber < entity.CONSUMABLES_TYPE_MAX_NUM; i++ {
+		itemPos := &room.Consumables.RoomFood[i].Geometry
+		if playerPos.XYcoords.X == itemPos.XYcoords.X && playerPos.XYcoords.Y == itemPos.XYcoords.Y {
+			gs.Player.Backpack.Foods[gs.Player.Backpack.FoodNumber] = room.Consumables.RoomFood[i].Food
+			gs.Player.Backpack.FoodNumber++
+			gs.Player.Backpack.CurrentSize++
+			gs.removeFoodFromRoom(room, i)
+			wasConsumed = true
+		}
+	}
+
+	for i := 0; i < room.Consumables.WeaponNumber && !wasConsumed && gs.Player.Backpack.WeaponNumber < entity.CONSUMABLES_TYPE_MAX_NUM; i++ {
+		itemPos := &room.Consumables.WeaponRoom[i].Geometry
+		if playerPos.XYcoords.X == itemPos.XYcoords.X && playerPos.XYcoords.Y == itemPos.XYcoords.Y {
+			gs.Player.Backpack.Weapons[gs.Player.Backpack.WeaponNumber] = room.Consumables.WeaponRoom[i].Weapon
+			gs.Player.Backpack.WeaponNumber++
+			gs.Player.Backpack.CurrentSize++
+			gs.removeWeaponFromRoom(room, i)
+			wasConsumed = true
+		}
+	}
+}
+
+func (gs *GameSession) removeElixirFromRoom(room *entity.Room, index int) {
+	if index < room.Consumables.ElixirNumber-1 {
+		room.Consumables.RoomElixir[index] = room.Consumables.RoomElixir[room.Consumables.ElixirNumber-1]
+	}
+	room.Consumables.ElixirNumber--
+}
+
+func (gs *GameSession) removeScrollFromRoom(room *entity.Room, index int) {
+	if index < room.Consumables.ScrollNumber-1 {
+		room.Consumables.RoomScroll[index] = room.Consumables.RoomScroll[room.Consumables.ScrollNumber-1]
+	}
+	room.Consumables.ScrollNumber--
+}
+
+func (gs *GameSession) removeFoodFromRoom(room *entity.Room, index int) {
+	if index < room.Consumables.FoodNumber-1 {
+		room.Consumables.RoomFood[index] = room.Consumables.RoomFood[room.Consumables.FoodNumber-1]
+	}
+	room.Consumables.FoodNumber--
+}
+
+func (gs *GameSession) removeWeaponFromRoom(room *entity.Room, index int) {
+	if index < room.Consumables.WeaponNumber-1 {
+		room.Consumables.WeaponRoom[index] = room.Consumables.WeaponRoom[room.Consumables.WeaponNumber-1]
+	}
+	room.Consumables.WeaponNumber--
 }

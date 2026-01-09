@@ -1,9 +1,9 @@
 package logic
 
 import (
-	"roguelike/domain/characters"
 	"roguelike/domain/datastructs"
 	"roguelike/domain/entity"
+	"time"
 )
 
 func ClearData(level *entity.Level) {
@@ -60,7 +60,7 @@ func GenerateEdgesForRooms(Edges []datastructs.Edge, EdgesCount *int) {
 		}
 	}
 
-	for i := 0; i + 1 < entity.ROOMS_IN_HEIGHT; i++ {
+	for i := 0; i+1 < entity.ROOMS_IN_HEIGHT; i++ {
 		for j := 0; j < entity.ROOMS_IN_WIDTH; j++ {
 			CurrentRoom := i*entity.ROOMS_IN_WIDTH + j
 
@@ -282,7 +282,7 @@ func GenerateMonsters(level *entity.Level, playerRoom int) {
 
 			for {
 				GenerateCoordsOfEntity(&level.Rooms[room], coords)
-				if characters.CheckUnoccupiedRoom(&level.Rooms[room], *coords) {
+				if CheckUnoccupiedRoom(coords, &level.Rooms[room]) {
 					break
 				}
 			}
@@ -295,15 +295,15 @@ func GenerateMonsters(level *entity.Level, playerRoom int) {
 
 func GenerateFoodData(food *entity.Food, player *entity.Player) {
 	names := [entity.CONSUMABLES_TYPE_MAX_NUM]string{
-        "Ration of the Ironclad",
-        "Crimson Berry Cluster",
-        "Loaf of the Forgotten Baker",
-        "Smoked Wyrm Jerky",
-        "Golden Apple of Vitality",
-        "Hardtack of the Endless March",
-        "Spiced Venison Strips",
-        "Honeyed Nectar Bread",
-        "Dried Mushrooms of the Deep",}
+		"Ration of the Ironclad",
+		"Crimson Berry Cluster",
+		"Loaf of the Forgotten Baker",
+		"Smoked Wyrm Jerky",
+		"Golden Apple of Vitality",
+		"Hardtack of the Endless March",
+		"Spiced Venison Strips",
+		"Honeyed Nectar Bread",
+		"Dried Mushrooms of the Deep"}
 
 	MaxRegen := player.BaseStats.Health * entity.MAX_PERCENT_FOOD_REGEN_FROM_HEALTH / 100
 	food.ToRegen = GetRandomInRange(1, int(MaxRegen))
@@ -312,16 +312,168 @@ func GenerateFoodData(food *entity.Food, player *entity.Player) {
 
 func GenerateFood(room *entity.Room, player *entity.Player) {
 	CountFood := room.Consumables.FoodNumber
-	Coords := &room.Consumables.Food[CountFood].Geometry
+	Coords := &room.Consumables.RoomFood[CountFood].Geometry
 
 	for {
 		GenerateCoordsOfEntity(room, Coords)
-		if characters.CheckUnoccupiedRoom(room, *Coords) {
+		if CheckUnoccupiedRoom(Coords, room) {
 			break
 		}
 	}
 
-	GenerateFoodData(&room.Consumables.Food[CountFood].Food, player)
+	GenerateFoodData(&room.Consumables.RoomFood[CountFood].Food, player)
 	room.Consumables.FoodNumber++
 }
 
+func GenerateElixirData(elixir *entity.Elixir, player *entity.Player) {
+	names := [entity.CONSUMABLES_TYPE_MAX_NUM]string{
+		"Elixir of the Jade Serpent",
+		"Potion of the Phantom's Breath",
+		"Vial of Crimson Vitality",
+		"Draught of the Frozen Star",
+		"Elixir of the Shattered Mind",
+		"Potion of the Wandering Soul",
+		"Vial of Ember Essence",
+		"Elixir of the Obsidian Veil",
+		"Potion of the Howling Wind",
+	}
+
+	statType := entity.StatType(GetRandomInRange(0, int(entity.Strength)))
+	var maxIncrease int
+
+	switch statType {
+	case entity.Health:
+		maxIncrease = player.RegenLimit * entity.MAX_PERCENT_FOOD_REGEN_FROM_HEALTH / 100
+	case entity.Agility:
+		maxIncrease = player.BaseStats.Agility * entity.MAX_PERCENT_AGILITY_INCREASE / 100
+	case entity.Strength:
+		maxIncrease = player.BaseStats.Strength * entity.MAX_PERCENT_STRENGTH_INCREASE / 100
+	}
+
+	elixir.Stat = statType
+	elixir.Increase = GetRandomInRange(1, maxIncrease)
+	elixir.Duration = time.Duration(GetRandomInRange(entity.MIN_ELIXIR_DURATION_SECONDS, entity.MAX_ELIXIR_DURATION_SECONDS)) * time.Second
+	elixir.Name = names[GetRandomInRange(0, entity.CONSUMABLES_TYPE_MAX_NUM-1)]
+}
+
+func GenerateElixir(room *entity.Room, player *entity.Player) {
+	CountElixir := room.Consumables.ElixirNumber
+	Coords := &room.Consumables.RoomElixir[CountElixir].Geometry
+
+	for {
+		GenerateCoordsOfEntity(room, Coords)
+		if CheckUnoccupiedRoom(Coords, room) {
+			break
+		}
+	}
+
+	GenerateElixirData(&room.Consumables.RoomElixir[CountElixir].Elixir, player)
+	room.Consumables.ElixirNumber++
+}
+
+func GenerateScrollData(scroll *entity.Scroll, player *entity.Player) {
+	names := [entity.CONSUMABLES_TYPE_MAX_NUM]string{
+		"Scroll of Shadowstep",
+		"Parchment of Eternal Flame",
+		"Manuscript of Forgotten Truths",
+		"Scroll of Iron Will",
+		"Vellum of the Void",
+		"Scroll of Whispers",
+		"Tome of the Lost King",
+		"Scroll of Unseen Paths",
+		"Parchment of Thunderous Roar",
+	}
+
+	statType := entity.StatType(GetRandomInRange(0, int(entity.Strength)))
+	var maxIncrease int
+
+	switch statType {
+	case entity.Health:
+		maxIncrease = player.RegenLimit * entity.MAX_PERCENT_FOOD_REGEN_FROM_HEALTH / 100
+	case entity.Agility:
+		maxIncrease = player.BaseStats.Agility * entity.MAX_PERCENT_AGILITY_INCREASE / 100
+	case entity.Strength:
+		maxIncrease = player.BaseStats.Strength * entity.MAX_PERCENT_STRENGTH_INCREASE / 100
+	}
+
+	scroll.Stat = statType
+	scroll.Increase = GetRandomInRange(1, maxIncrease)
+	scroll.Name = names[GetRandomInRange(0, entity.CONSUMABLES_TYPE_MAX_NUM-1)]
+}
+
+func GenerateScroll(room *entity.Room, player *entity.Player) {
+	CountScroll := room.Consumables.ScrollNumber
+	Coords := &room.Consumables.RoomScroll[CountScroll].Geometry
+
+	for {
+		GenerateCoordsOfEntity(room, Coords)
+		if CheckUnoccupiedRoom(Coords, room) {
+			break
+		}
+	}
+
+	GenerateScrollData(&room.Consumables.RoomScroll[CountScroll].Scroll, player)
+	room.Consumables.ScrollNumber++
+}
+
+func GenerateWeaponData(weapon *entity.Weapon, player *entity.Player) {
+	names := [entity.CONSUMABLES_TYPE_MAX_NUM]string{
+		"Blade of the Forgotten Dawn",
+		"Obsidian Reaver",
+		"Fang of the Shadow Wolf",
+		"Ironclad Cleaver",
+		"Crimson Talon",
+		"Thunderstrike Maul",
+		"Serpent's Kiss Dagger",
+		"Voidrend Sword",
+		"Ebonheart Spear",
+	}
+
+	maxStrength := entity.MAX_WEAPON_STRENGTH
+	if player.Weapon.Strength < maxStrength && player.Weapon.Strength != entity.NO_WEAPON {
+		maxStrength = player.Weapon.Strength
+	}
+	weapon.Strength = GetRandomInRange(entity.MIN_WEAPON_STRENGTH, maxStrength)
+	weapon.Name = names[GetRandomInRange(0, entity.CONSUMABLES_TYPE_MAX_NUM-1)]
+}
+
+func GenerateWeapon(room *entity.Room, player *entity.Player) {
+	CountWeapon := room.Consumables.WeaponNumber
+	Coords := &room.Consumables.WeaponRoom[CountWeapon].Geometry
+
+	for {
+		GenerateCoordsOfEntity(room, Coords)
+		if CheckUnoccupiedRoom(Coords, room) {
+			break
+		}
+	}
+
+	GenerateWeaponData(&room.Consumables.WeaponRoom[CountWeapon].Weapon, player)
+	room.Consumables.WeaponNumber++
+}
+
+func GenerateConsumables(level *entity.Level, playerRoom int, player *entity.Player, levelNum int) {
+	generateFuncs := []func(*entity.Room, *entity.Player){
+		GenerateFood,
+		GenerateElixir,
+		GenerateScroll,
+		GenerateWeapon,
+	}
+
+	maxConsumables := entity.MAX_CONSUMABLES_PER_ROOM - levelNum/entity.LEVEL_UPDATE_DIFFICULTY
+	if maxConsumables < 1 {
+		maxConsumables = 1
+	}
+
+	for room := 0; room < entity.ROOMS_NUM; room++ {
+		if room == playerRoom {
+			continue
+		}
+
+		countConsumables := GetRandomInRange(0, maxConsumables)
+		for i := 0; i < countConsumables; i++ {
+			consumableType := GetRandomInRange(0, entity.CONSUMABLES_TYPES_NUM-1)
+			generateFuncs[consumableType](&level.Rooms[room], player)
+		}
+	}
+}
