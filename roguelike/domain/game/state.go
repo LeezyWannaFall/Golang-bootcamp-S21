@@ -3,7 +3,16 @@ package game
 import (
 	"roguelike/domain/entity"
 	"roguelike/domain/logic"
+	"time"
 )
+
+type RunResult struct {
+	Statistics   SessionStatistics
+	DeepestLevel int
+	Completed    bool
+	Timestamp    time.Time
+}
+
 
 type GameSessionState struct {
 	LevelNumber int
