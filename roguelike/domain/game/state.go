@@ -177,11 +177,11 @@ func exportLevelState(l *entity.Level) LevelState {
 
 func (s *GameSession) Restore(state GameSessionState) {
 	s.IsRunning = state.IsRunning
-	s.CurrentLevel.LevelNumber = state.LevelNumber
 	s.Statistics = state.Statistics
 
 	s.Player = restorePlayer(state.Player)
 	s.CurrentLevel = restoreLevel(state.Level)
+	s.CurrentLevel.LevelNumber = state.LevelNumber
 }
 
 func restorePlayer(ps PlayerState) *entity.Player {
@@ -203,6 +203,7 @@ func restorePlayer(ps PlayerState) *entity.Player {
 		ScrollNumber:  len(ps.Backpack.Scrolls),
 		WeaponNumber:  len(ps.Backpack.Weapons),
 		Treasures:    ps.Backpack.Treasures,
+		CurrentSize: len(ps.Backpack.Foods) + len(ps.Backpack.Elixirs) + len(ps.Backpack.Scrolls) + len(ps.Backpack.Weapons),
 	}
 
 	copy(player.Backpack.Foods[:], ps.Backpack.Foods)
