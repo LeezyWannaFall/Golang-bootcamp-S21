@@ -72,3 +72,105 @@ func CopySlice[T any](src []T) []T {
 	copy(dst, src)
 	return dst
 }
+
+func FoodRoomsToFoods(src []entity.FoodRoom) []entity.Food {
+	dst := make([]entity.Food, len(src))
+	for i, f := range src {
+		dst[i] = entity.Food{
+			Name:    f.Food.Name,
+			ToRegen: f.Food.ToRegen,
+		}
+	}
+	return dst
+}
+
+func ElixirRoomsToElixirs(src []entity.ElixirRoom) []entity.Elixir {
+	dst := make([]entity.Elixir, len(src))
+	for i, e := range src {
+		dst[i] = entity.Elixir{
+			Name:     e.Elixir.Name,
+			Stat:     e.Elixir.Stat,
+			Increase: e.Elixir.Increase,
+			Duration: e.Elixir.Duration,
+		}
+	}
+	return dst
+}
+
+func ScrollsRoomsToScrolls(src []entity.ScrollRoom) []entity.Scroll {
+	dst := make([]entity.Scroll, len(src))
+	for i, s := range src {
+		dst[i] = entity.Scroll{
+			Name:     s.Scroll.Name,
+			Stat:     s.Scroll.Stat,
+			Increase: s.Scroll.Increase,
+		}
+	}
+	return dst
+}
+
+func WeaponRoomsToWeapon(src []entity.WeaponRoom) []entity.Weapon {
+	dst := make([]entity.Weapon, len(src))
+	for i, w := range src {
+		dst[i] = entity.Weapon{
+			Name:     w.Weapon.Name,
+			Strength: w.Weapon.Strength,
+		}
+	}
+	return dst
+}
+
+func FoodsToFoodRooms(src []entity.Food) []entity.FoodRoom {
+	dst := make([]entity.FoodRoom, len(src))
+	for i, f := range src {
+		dst[i] = entity.FoodRoom{
+			Food: entity.Food{
+				Name:    f.Name,
+				ToRegen: f.ToRegen,
+			},
+		}
+	}
+	return dst
+}
+
+func ElixirsToElixirRooms(src []entity.Elixir) []entity.ElixirRoom {
+	dst := make([]entity.ElixirRoom, len(src))
+	for i, e := range src {
+		dst[i] = entity.ElixirRoom{
+			Elixir: entity.Elixir{
+				Name:     e.Name,
+				Stat:     e.Stat,
+				Increase: e.Increase,
+				Duration: e.Duration,
+			},
+		}
+	}
+	return dst
+}
+
+func ScrollsToScrollsRooms(src []entity.Scroll) []entity.ScrollRoom {
+	dst := make([]entity.ScrollRoom, len(src))
+	for i, s := range src {
+		dst[i] = entity.ScrollRoom{
+			Scroll: entity.Scroll{
+				Name:     s.Name,
+				Stat:     s.Stat,
+				Increase: s.Increase,
+			},
+		}
+	}
+	return dst
+}
+
+func WeaponsToWeaponRooms(src []entity.Weapon) []entity.WeaponRoom {
+	dst := make([]entity.WeaponRoom, len(src))
+	for i, w := range src {
+		dst[i] = entity.WeaponRoom{
+			Weapon: entity.Weapon{
+				Name:     w.Name,
+				Strength: w.Strength,
+			},
+		}
+	}
+	return dst
+}
