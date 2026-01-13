@@ -9,7 +9,7 @@ import (
 type RunResult struct {
 	Statistics   SessionStatistics
 	FinalLevel	 int
-	Completed    bool
+	IsGameRunning    bool
 	Timestamp    time.Time
 }
 

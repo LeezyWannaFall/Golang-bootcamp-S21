@@ -14,7 +14,6 @@ func main() {
 
 	// --- game session ---
 	session := game.NewGameSession()
-	session.Start()
 
 	// --- load save if exists ---
 	if hasSave, _ := saveRepo.HasSave(); hasSave {
@@ -28,13 +27,13 @@ func main() {
 	}
 
 	// --- start game loop ---
-	session.Start()
+	session.GameLoop()
 
-	// --- game finished ---
+	// --- save statistics and delete save ---
 	run := game.RunResult{
 		Statistics:   session.Statistics,
 		FinalLevel: session.Statistics.DeepestLevel,
-		Completed:    session.IsRunning,
+		IsGameRunning:    session.IsRunning,
 		Timestamp:    time.Now(),
 	}
 

@@ -60,8 +60,8 @@ func (r *JSONStatisticRepository) LoadTop(limit int) ([]game.RunResult, error) {
 	}
 	
 	sort.Slice(runs, func(i, j int) bool {
-		if runs[i].Completed != runs[j].Completed {
-			return runs[i].Completed
+		if runs[i].IsGameRunning != runs[j].IsGameRunning {
+			return runs[i].IsGameRunning
 		}
 		return runs[i].FinalLevel > runs[j].FinalLevel
 	})
