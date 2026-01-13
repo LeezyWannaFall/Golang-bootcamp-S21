@@ -8,7 +8,7 @@ import (
 
 type RunResult struct {
 	Statistics   SessionStatistics
-	DeepestLevel int
+	FinalLevel	 int
 	Completed    bool
 	Timestamp    time.Time
 }
