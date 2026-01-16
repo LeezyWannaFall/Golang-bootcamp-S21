@@ -12,11 +12,12 @@ const (
 type MonsterType int
 
 const (
-    Zombie MonsterType = iota
-    Vampire
-    Ghost
-    Ogre
-    Snake
+	Zombie MonsterType = iota
+	Vampire
+	Ghost
+	Ogre
+	Snake
+	Mimic
 )
 
 type HostilityType int
@@ -32,7 +33,17 @@ type StatType int
 const (
 	Health StatType = iota
 	Agility
-	Strength 
+	Strength
+)
+
+type KeyColor int
+
+const (
+	RedKey KeyColor = iota
+	BlueKey
+	YellowKey
+	GreenKey
+	KeyColorCount
 )
 
 type Direction int
@@ -55,24 +66,25 @@ type Pos struct {
 }
 
 type Object struct {
-	XYcoords	 Pos
-    W    int
-    H    int
+	XYcoords Pos
+	W        int
+	H        int
 }
 
 type Character struct {
-    Pos      Object
-    Health   float64
-    Agility  int
-    Strength int
+	Pos      Object
+	Health   float64
+	Agility  int
+	Strength int
 }
 
 type Monster struct {
-    Stats     Character
-    Type      MonsterType
-    Hostility HostilityType
-    IsChasing bool
-    Dir       Direction
+	Stats     Character
+	Type      MonsterType
+	Hostility HostilityType
+	IsChasing bool
+	Dir       Direction
+	IsDead    bool
 }
 
 type Treasure struct {
@@ -81,7 +93,7 @@ type Treasure struct {
 
 type Food struct {
 	ToRegen int
-	Name   	string
+	Name    string
 }
 
 type Elixir struct {
@@ -99,104 +111,126 @@ type Scroll struct {
 
 type Weapon struct {
 	Strength int
-	Name   string
+	Name     string
+}
+
+type Key struct {
+	Color KeyColor
+}
+
+type KeyRoom struct {
+	Geometry Object
+	Key      Key
+}
+
+type Door struct {
+	Position Object
+	Color    KeyColor
+	IsOpen   bool
 }
 
 type FoodRoom struct {
 	Geometry Object
-	Food Food
+	Food     Food
 }
 
 type ElixirRoom struct {
 	Geometry Object
-	Elixir Elixir
+	Elixir   Elixir
 }
 
 type ScrollRoom struct {
 	Geometry Object
-	Scroll Scroll
+	Scroll   Scroll
 }
 
 type WeaponRoom struct {
 	Geometry Object
-	Weapon Weapon
+	Weapon   Weapon
 }
 
 type ConsumablesRoom struct {
-	RoomFood  [MAX_CONSUMABLES_PER_ROOM]FoodRoom
+	RoomFood   [MAX_CONSUMABLES_PER_ROOM]FoodRoom
 	FoodNumber int
 
-	RoomElixir [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
+	RoomElixir   [MAX_CONSUMABLES_PER_ROOM]ElixirRoom
 	ElixirNumber int
 
-	RoomScroll [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
+	RoomScroll   [MAX_CONSUMABLES_PER_ROOM]ScrollRoom
 	ScrollNumber int
 
-	WeaponRoom [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
+	WeaponRoom   [MAX_CONSUMABLES_PER_ROOM]WeaponRoom
 	WeaponNumber int
+
+	RoomKeys   [KeyColorCount]KeyRoom
+	KeyNumber  int
 }
 
 type Room struct {
-	Coordinates Object
-	Consumables ConsumablesRoom
+	Coordinates       Object
+	Consumables       ConsumablesRoom
 	ConsumablesNumber int
-	Monsters [MAX_MONSTERS_PER_ROOM]Monster
-	MonsterNumbers int
+	Monsters          [MAX_MONSTERS_PER_ROOM]Monster
+	MonsterNumbers    int
 }
 
 type Backpack struct {
 	CurrentSize int
 
-	Foods [CONSUMABLES_TYPE_MAX_NUM]Food
+	Foods      [CONSUMABLES_TYPE_MAX_NUM]Food
 	FoodNumber int
 
-	Elixirs [CONSUMABLES_TYPE_MAX_NUM]Elixir
+	Elixirs      [CONSUMABLES_TYPE_MAX_NUM]Elixir
 	ElixirNumber int
 
-	Scrolls [CONSUMABLES_TYPE_MAX_NUM]Scroll
+	Scrolls      [CONSUMABLES_TYPE_MAX_NUM]Scroll
 	ScrollNumber int
 
 	Treasures Treasure
 
-	Weapons [CONSUMABLES_TYPE_MAX_NUM]Weapon
+	Weapons      [CONSUMABLES_TYPE_MAX_NUM]Weapon
 	WeaponNumber int
+
+	Keys [KeyColorCount]bool
 }
 
 type Buff struct {
 	StatIncrease int
-	EffectEnd int64
+	EffectEnd    int64 // Unix timestamp в секундах
 }
 
 type Buffs struct {
-	MaxHealth [CONSUMABLES_TYPE_MAX_NUM]Buff
+	MaxHealth               [CONSUMABLES_TYPE_MAX_NUM]Buff
 	CurrentHealthBuffNumber int
 
-	Agility [CONSUMABLES_TYPE_MAX_NUM]Buff
+	Agility                  [CONSUMABLES_TYPE_MAX_NUM]Buff
 	CurrentAgilityBuffNumber int
 
-	Strength [CONSUMABLES_TYPE_MAX_NUM]Buff
+	Strength                  [CONSUMABLES_TYPE_MAX_NUM]Buff
 	CurrentStrengthBuffNumber int
 }
 
 type Player struct {
-	BaseStats Character
-	RegenLimit int
-	Backpack Backpack
-	Weapon Weapon
+	BaseStats   Character
+	RegenLimit  int
+	Backpack    Backpack
+	Weapon      Weapon
 	ElixirBuffs Buffs
 }
 
 type Passage Object
 
 type Passages struct {
-	Passages []Passage
+	Passages       []Passage
 	PassagesNumber int
 }
 
 type Level struct {
 	Coordinates Object
-	Rooms [ROOMS_NUM]Room
-	Passages Passages
+	Rooms       [ROOMS_NUM]Room
+	Passages    Passages
 	LevelNumber int
-	EndOfLevel Object
+	EndOfLevel  Object
+	Doors       []Door
+	DoorNumber  int
 }

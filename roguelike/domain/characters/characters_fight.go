@@ -6,47 +6,62 @@ import (
 	"roguelike/domain/logic"
 )
 
-const INITIAL_HIT_CHANCE =     70
-const STANDART_AGILITY =       50
-const AGILITY_FACTOR =        0.3
-const INITIAL_DAMAGE =         30
-const STANDART_STRENGTH =      50
-const STRENGTH_FACTOR =       0.3
-const STRENGTH_ADDITION =      65
-const SLEEP_CHANCE =           15
-const MAX_HP_PART =            10
-const LOOT_AGILITY_FACTOR =   0.2
-const LOOT_HP_FACTOR =        0.5
-const LOOT_STRENGTH_FACTOR =  0.5
-const MAXIMUM_FIGHTS =          8
+const INITIAL_HIT_CHANCE = 70
+const STANDART_AGILITY = 50
+const AGILITY_FACTOR = 0.3
+const INITIAL_DAMAGE = 30
+const STANDART_STRENGTH = 50
+const STRENGTH_FACTOR = 0.3
+const STRENGTH_ADDITION = 65
+const SLEEP_CHANCE = 15
+const MAX_HP_PART = 10
+const LOOT_AGILITY_FACTOR = 0.2
+const LOOT_HP_FACTOR = 0.5
+const LOOT_STRENGTH_FACTOR = 0.5
+const MAXIMUM_FIGHTS = 8
 
 type Turn int
 
 const (
-	PlayerTurn  Turn = iota
+	PlayerTurn Turn = iota
 	MonsterTurn
 )
 
 type BattleInfo struct {
-	Enemy             *entity.Monster
+	Enemy              *entity.Monster
 	VampireFirstAttack bool
-	PlayerAsleep      bool
-	OgreCooldown      bool
-	IsFighting        bool
+	PlayerAsleep       bool
+	OgreCooldown       bool
+	IsFighting         bool
 }
 
-func Attack(player *entity.Player, battleInfo *BattleInfo, turn Turn) {
+func Attack(player *entity.Player, battleInfo *BattleInfo, turn Turn, level *entity.Level) {
 	switch turn {
 	case PlayerTurn:
 		if CheckHit(player, battleInfo.Enemy, PlayerTurn) {
 			battleInfo.Enemy.Stats.Health -= CalculateDamage(player, battleInfo, PlayerTurn)
 		}
-		if battleInfo.Enemy.Stats.Health <= 0 {
+		if battleInfo.Enemy.Stats.Health <= 0 && !battleInfo.Enemy.IsDead {
+			battleInfo.Enemy.IsDead = true
 			player.Backpack.Treasures.Value += int(CalculateLoot(battleInfo.Enemy))
+			RemoveMonsterFromRoom(level, battleInfo.Enemy)
 		}
 	case MonsterTurn:
 		if CheckHit(player, battleInfo.Enemy, MonsterTurn) {
-			player.BaseStats.Health -= CalculateDamage(player, battleInfo, MonsterTurn)
+			damage := CalculateDamage(player, battleInfo, MonsterTurn)
+			player.BaseStats.Health -= damage
+			if battleInfo.Enemy.Type == entity.Vampire {
+				hpReduction := int(damage)
+				if hpReduction > 0 {
+					player.RegenLimit -= hpReduction
+					if player.RegenLimit < 1 {
+						player.RegenLimit = 1
+					}
+					if player.BaseStats.Health > float64(player.RegenLimit) {
+						player.BaseStats.Health = float64(player.RegenLimit)
+					}
+				}
+			}
 		}
 	}
 }
@@ -75,6 +90,7 @@ func CalculateDamage(player *entity.Player, battleInfo *BattleInfo, turn Turn) f
 		entity.Ghost:   ZombieGhostDamageFormula,
 		entity.Ogre:    OgreDamageFormula,
 		entity.Snake:   SnakeDamageFormula,
+		entity.Mimic:   ZombieGhostDamageFormula,
 	}
 
 	switch turn {
@@ -82,9 +98,9 @@ func CalculateDamage(player *entity.Player, battleInfo *BattleInfo, turn Turn) f
 		if !(battleInfo.Enemy.Type == entity.Vampire && battleInfo.VampireFirstAttack) &&
 			!(battleInfo.Enemy.Type == entity.Snake && battleInfo.PlayerAsleep) {
 			if player.Weapon.Strength == entity.NO_WEAPON {
-				damage += float64(player.BaseStats.Strength - STANDART_STRENGTH) * STRENGTH_FACTOR
+				damage += float64(player.BaseStats.Strength-STANDART_STRENGTH) * STRENGTH_FACTOR
 			} else {
-				damage = float64(player.Weapon.Strength) * float64(player.BaseStats.Strength + STRENGTH_ADDITION) / 100
+				damage = float64(player.Weapon.Strength) * float64(player.BaseStats.Strength+STRENGTH_ADDITION) / 100
 			}
 		} else if battleInfo.Enemy.Type == entity.Vampire && battleInfo.VampireFirstAttack {
 			battleInfo.VampireFirstAttack = false
@@ -102,20 +118,20 @@ func CalculateDamage(player *entity.Player, battleInfo *BattleInfo, turn Turn) f
 }
 
 func CalculateLoot(monster *entity.Monster) float64 {
-	loot := float64(monster.Stats.Agility) * LOOT_AGILITY_FACTOR +
-		float64(monster.Stats.Health) * LOOT_HP_FACTOR +
-		float64(monster.Stats.Strength) * LOOT_STRENGTH_FACTOR +
-		rand.Float64() * 20.0
+	loot := float64(monster.Stats.Agility)*LOOT_AGILITY_FACTOR +
+		float64(monster.Stats.Health)*LOOT_HP_FACTOR +
+		float64(monster.Stats.Strength)*LOOT_STRENGTH_FACTOR +
+		rand.Float64()*20.0
 	return loot
 }
 
 func ZombieGhostDamageFormula(battleInfo *BattleInfo) float64 {
-	return INITIAL_DAMAGE + float64(battleInfo.Enemy.Stats.Strength - STANDART_STRENGTH) * STRENGTH_FACTOR
+	return INITIAL_DAMAGE + float64(battleInfo.Enemy.Stats.Strength-STANDART_STRENGTH)*STRENGTH_FACTOR
 }
 
 func OgreDamageFormula(battleInfo *BattleInfo) float64 {
 	if !battleInfo.OgreCooldown {
-		damage := float64(battleInfo.Enemy.Stats.Strength - STANDART_STRENGTH) * STRENGTH_FACTOR
+		damage := float64(battleInfo.Enemy.Stats.Strength-STANDART_STRENGTH) * STRENGTH_FACTOR
 		battleInfo.OgreCooldown = true
 		return damage
 	} else {
@@ -136,7 +152,7 @@ func VampireDamageFormula(player *entity.Player) float64 {
 }
 
 func HitChanceFormula(attackerAgility int, defenderAgility int) int {
-	return int(AGILITY_FACTOR * float64(attackerAgility - defenderAgility - STANDART_AGILITY))
+	return int(AGILITY_FACTOR * float64(attackerAgility-defenderAgility-STANDART_AGILITY))
 }
 
 func CheckEqualCoords(firstCoords, secondCoords entity.Pos) bool {
@@ -144,16 +160,15 @@ func CheckEqualCoords(firstCoords, secondCoords entity.Pos) bool {
 }
 
 func CheckIfNeighborTile(first, second entity.Pos) bool {
-	return (first.X == second.X && logic.Abs(first.Y - second.Y) == 1) || (first.Y == second.Y && logic.Abs(first.X - second.X) == 1)
+	return (first.X == second.X && logic.Abs(first.Y-second.Y) == 1) || (first.Y == second.Y && logic.Abs(first.X-second.X) == 1)
 }
 
 func CheckIfDiagonallyNeighborTile(first, second entity.Pos) bool {
-	return logic.Abs(first.X - second.X) == 1 && logic.Abs(first.Y - second.Y) == 1
+	return logic.Abs(first.X-second.X) == 1 && logic.Abs(first.Y-second.Y) == 1
 }
 
 func CheckUnique(monster *entity.Monster, battles_array []BattleInfo) bool {
 	IsUnique := true
-
 
 	for i := 0; i < MAXIMUM_FIGHTS && IsUnique; i++ {
 		if battles_array[i].IsFighting && CheckEqualCoords(battles_array[i].Enemy.Stats.Pos.XYcoords, monster.Stats.Pos.XYcoords) {

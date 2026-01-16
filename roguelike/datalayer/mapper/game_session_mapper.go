@@ -4,7 +4,6 @@ import (
 	"roguelike/datalayer/dto"
 	"roguelike/domain/entity"
 	"roguelike/domain/game"
-	"roguelike/domain/logic"
 	"time"
 )
 
@@ -35,12 +34,19 @@ func playerToDTO(ps game.PlayerState) dto.PlayerDTO {
 }
 
 func backpackToDTO(bs game.BackpackState) dto.BackpackDTO {
+	keys := make([]int, 0)
+	for i := 0; i < int(entity.KeyColorCount); i++ {
+		if bs.Keys[i] {
+			keys = append(keys, i)
+		}
+	}
 	return dto.BackpackDTO{
 		Foods:     foodsToDTO(bs.Foods),
 		Elixirs:   elixirsToDTO(bs.Elixirs),
 		Scrolls:   scrollsToDTO(bs.Scrolls),
 		Weapons:   weaponsToDTO(bs.Weapons),
 		Treasures: bs.Treasures.Value,
+		Keys:      keys,
 	}
 }
 
@@ -106,12 +112,19 @@ func playerFromDTO(d dto.PlayerDTO) game.PlayerState {
 }
 
 func backpackFromDTO(d dto.BackpackDTO) game.BackpackState {
+	keys := [entity.KeyColorCount]bool{}
+	for _, keyIdx := range d.Keys {
+		if keyIdx >= 0 && keyIdx < int(entity.KeyColorCount) {
+			keys[keyIdx] = true
+		}
+	}
 	return game.BackpackState{
 		Foods:     foodsFromDTO(d.Foods),
 		Elixirs:   elixirsFromDTO(d.Elixirs),
 		Scrolls:   scrollsFromDTO(d.Scrolls),
 		Weapons:   weaponsFromDTO(d.Weapons),
 		Treasures: entity.Treasure{Value: d.Treasures},
+		Keys:      keys,
 	}
 }
 
@@ -140,10 +153,20 @@ func levelToDTO(ls game.LevelState) dto.LevelDTO {
 		passages[i] = passageToDTO(p)
 	}
 
+	doors := make([]dto.DoorDTO, len(ls.Doors))
+	for i, door := range ls.Doors {
+		doors[i] = dto.DoorDTO{
+			Position: objectToDTO(door.Position),
+			Color:    int(door.Color),
+			IsOpen:   door.IsOpen,
+		}
+	}
+
 	return dto.LevelDTO{
 		Rooms:      rooms,
 		Passages:   passages,
 		EndOfLevel: objectToDTO(ls.EndOfLevel),
+		Doors:      doors,
 	}
 }
 
@@ -158,10 +181,20 @@ func levelFromDTO(d dto.LevelDTO) game.LevelState {
 		passages[i] = passageFromDTO(p)
 	}
 
+	doors := make([]entity.Door, len(d.Doors))
+	for i, door := range d.Doors {
+		doors[i] = entity.Door{
+			Position: objectFromDTO(door.Position),
+			Color:    entity.KeyColor(door.Color),
+			IsOpen:   door.IsOpen,
+		}
+	}
+
 	return game.LevelState{
 		Rooms:      rooms,
 		Passages:   passages,
 		EndOfLevel: objectFromDTO(d.EndOfLevel),
+		Doors:      doors,
 	}
 }
 
@@ -331,14 +364,34 @@ func roomToDTO(r game.RoomState) dto.RoomDTO {
 		}
 	}
 
+	foods := make([]entity.Food, len(r.Consumables.Foods))
+	for i, room := range r.Consumables.Foods {
+		foods[i] = room.Food
+	}
+	
+	elixirs := make([]entity.Elixir, len(r.Consumables.Elixirs))
+	for i, room := range r.Consumables.Elixirs {
+		elixirs[i] = room.Elixir
+	}
+	
+	scrolls := make([]entity.Scroll, len(r.Consumables.Scrolls))
+	for i, room := range r.Consumables.Scrolls {
+		scrolls[i] = room.Scroll
+	}
+	
+	weapons := make([]entity.Weapon, len(r.Consumables.Weapons))
+	for i, room := range r.Consumables.Weapons {
+		weapons[i] = room.Weapon
+	}
+
 	return dto.RoomDTO{
 		Coordinates: objectToDTO(r.Coordinates),
 		Monsters:    monsters,
 		Consumables: dto.ConsumablesDTO{
-			Foods:   foodsToDTO(logic.FoodRoomsToFoods(r.Consumables.Foods)),
-			Elixirs: elixirsToDTO(logic.ElixirRoomsToElixirs(r.Consumables.Elixirs)),
-			Scrolls: scrollsToDTO(logic.ScrollsRoomsToScrolls(r.Consumables.Scrolls)),
-			Weapons: weaponsToDTO(logic.WeaponRoomsToWeapon(r.Consumables.Weapons)),
+			Foods:   foodsToDTO(foods),
+			Elixirs: elixirsToDTO(elixirs),
+			Scrolls: scrollsToDTO(scrolls),
+			Weapons: weaponsToDTO(weapons),
 		},
 	}
 }
@@ -361,14 +414,50 @@ func roomFromDTO(d dto.RoomDTO) game.RoomState {
 		}
 	}
 
+	foods := foodsFromDTO(d.Consumables.Foods)
+	foodRooms := make([]entity.FoodRoom, len(foods))
+	for i, food := range foods {
+		foodRooms[i] = entity.FoodRoom{
+			Geometry: entity.Object{},
+			Food:     food,
+		}
+	}
+	
+	elixirs := elixirsFromDTO(d.Consumables.Elixirs)
+	elixirRooms := make([]entity.ElixirRoom, len(elixirs))
+	for i, elixir := range elixirs {
+		elixirRooms[i] = entity.ElixirRoom{
+			Geometry: entity.Object{},
+			Elixir:   elixir,
+		}
+	}
+	
+	scrolls := scrollsFromDTO(d.Consumables.Scrolls)
+	scrollRooms := make([]entity.ScrollRoom, len(scrolls))
+	for i, scroll := range scrolls {
+		scrollRooms[i] = entity.ScrollRoom{
+			Geometry: entity.Object{},
+			Scroll:   scroll,
+		}
+	}
+	
+	weapons := weaponsFromDTO(d.Consumables.Weapons)
+	weaponRooms := make([]entity.WeaponRoom, len(weapons))
+	for i, weapon := range weapons {
+		weaponRooms[i] = entity.WeaponRoom{
+			Geometry: entity.Object{},
+			Weapon:   weapon,
+		}
+	}
+
 	return game.RoomState{
 		Coordinates: objectFromDTO(d.Coordinates),
 		Monsters:    monsters,
 		Consumables: game.ConsumablesState{
-			Foods:   logic.FoodsToFoodRooms(foodsFromDTO(d.Consumables.Foods)),
-			Elixirs: logic.ElixirsToElixirRooms(elixirsFromDTO(d.Consumables.Elixirs)),
-			Scrolls: logic.ScrollsToScrollsRooms(scrollsFromDTO(d.Consumables.Scrolls)),
-			Weapons: logic.WeaponsToWeaponRooms(weaponsFromDTO(d.Consumables.Weapons)),
+			Foods:   foodRooms,
+			Elixirs: elixirRooms,
+			Scrolls: scrollRooms,
+			Weapons: weaponRooms,
 		},
 	}
 }

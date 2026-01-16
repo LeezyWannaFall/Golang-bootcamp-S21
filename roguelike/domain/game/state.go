@@ -1,6 +1,7 @@
 package game
 
 import (
+	"roguelike/domain/characters"
 	"roguelike/domain/entity"
 	"roguelike/domain/logic"
 	"time"
@@ -42,6 +43,7 @@ type BackpackState struct {
 	Scrolls    []entity.Scroll
 	Weapons    []entity.Weapon
 	Treasures  entity.Treasure
+	Keys       [entity.KeyColorCount]bool
 }
 
 type BuffState struct {
@@ -75,12 +77,15 @@ type ConsumablesState struct {
 	Elixirs []entity.ElixirRoom
 	Scrolls []entity.ScrollRoom
 	Weapons []entity.WeaponRoom
+	Keys    []entity.KeyRoom
 }
 
 type LevelState struct {
+	Coordinates entity.Object
 	Rooms       []RoomState
 	Passages    []entity.Passage
 	EndOfLevel  entity.Object
+	Doors       []entity.Door
 }
 
 
@@ -101,6 +106,7 @@ func exportPlayerState(p *entity.Player) PlayerState {
 		Scrolls:   logic.CopySlice(p.Backpack.Scrolls[:p.Backpack.ScrollNumber]),
 		Weapons:   logic.CopySlice(p.Backpack.Weapons[:p.Backpack.WeaponNumber]),
 		Treasures: p.Backpack.Treasures,
+		Keys:      p.Backpack.Keys,
 	}
 
 
@@ -168,6 +174,7 @@ func exportLevelState(l *entity.Level) LevelState {
 			Elixirs: logic.CopySlice(room.Consumables.RoomElixir[:room.Consumables.ElixirNumber]),
 			Scrolls: logic.CopySlice(room.Consumables.RoomScroll[:room.Consumables.ScrollNumber]),
 			Weapons: logic.CopySlice(room.Consumables.WeaponRoom[:room.Consumables.WeaponNumber]),
+			Keys:    logic.CopySlice(room.Consumables.RoomKeys[:room.Consumables.KeyNumber]),
 		}
 
 		roomStates[i] = RoomState{
@@ -178,9 +185,11 @@ func exportLevelState(l *entity.Level) LevelState {
 	}
 
 	return LevelState{
-		Rooms:      roomStates,
-		Passages:   logic.CopySlice(l.Passages.Passages),
-		EndOfLevel: l.EndOfLevel,
+		Coordinates: l.Coordinates,
+		Rooms:       roomStates,
+		Passages:    logic.CopySlice(l.Passages.Passages),
+		EndOfLevel:  l.EndOfLevel,
+		Doors:       logic.CopySlice(l.Doors),
 	}
 }
 
@@ -191,6 +200,45 @@ func (s *GameSession) Restore(state GameSessionState) {
 	s.Player = restorePlayer(state.Player)
 	s.CurrentLevel = restoreLevel(state.Level)
 	s.CurrentLevel.LevelNumber = state.LevelNumber
+	
+	if s.CurrentLevel.Coordinates.W == 0 || s.CurrentLevel.Coordinates.H == 0 {
+		s.CurrentLevel.Coordinates = entity.Object{
+			XYcoords: entity.Pos{X: 0, Y: 0},
+			W:        entity.ROOMS_IN_WIDTH * entity.REGION_WIDTH,
+			H:        entity.ROOMS_IN_HEIGHT * entity.REGION_HEIGHT,
+		}
+	}
+	
+	s.UpdateCurrentRoom()
+	
+	if s.CurrentRoom < 0 || s.CurrentRoom >= entity.ROOMS_NUM {
+		s.CurrentRoom = 0
+		for i := 0; i < entity.ROOMS_NUM; i++ {
+			room := &s.CurrentLevel.Rooms[i]
+			if s.Player.BaseStats.Pos.XYcoords.X >= room.Coordinates.XYcoords.X &&
+				s.Player.BaseStats.Pos.XYcoords.X < room.Coordinates.XYcoords.X+room.Coordinates.W &&
+				s.Player.BaseStats.Pos.XYcoords.Y >= room.Coordinates.XYcoords.Y &&
+				s.Player.BaseStats.Pos.XYcoords.Y < room.Coordinates.XYcoords.Y+room.Coordinates.H {
+				s.CurrentRoom = i
+				break
+			}
+		}
+	}
+	
+	playerPos := entity.Pos{
+		X: s.Player.BaseStats.Pos.XYcoords.X,
+		Y: s.Player.BaseStats.Pos.XYcoords.Y,
+	}
+	
+	if characters.IsOutsideLevel(playerPos, s.CurrentLevel) {
+		if s.CurrentRoom >= 0 && s.CurrentRoom < entity.ROOMS_NUM {
+			room := &s.CurrentLevel.Rooms[s.CurrentRoom]
+			if room.Coordinates.W > 0 && room.Coordinates.H > 0 {
+				s.Player.BaseStats.Pos.XYcoords.X = room.Coordinates.XYcoords.X + room.Coordinates.W/2
+				s.Player.BaseStats.Pos.XYcoords.Y = room.Coordinates.XYcoords.Y + room.Coordinates.H/2
+			}
+		}
+	}
 }
 
 func restorePlayer(ps PlayerState) *entity.Player {
@@ -213,6 +261,7 @@ func restorePlayer(ps PlayerState) *entity.Player {
 		WeaponNumber:  len(ps.Backpack.Weapons),
 		Treasures:    ps.Backpack.Treasures,
 		CurrentSize: len(ps.Backpack.Foods) + len(ps.Backpack.Elixirs) + len(ps.Backpack.Scrolls) + len(ps.Backpack.Weapons),
+		Keys:         ps.Backpack.Keys,
 	}
 
 	copy(player.Backpack.Foods[:], ps.Backpack.Foods)
@@ -251,7 +300,10 @@ func restorePlayer(ps PlayerState) *entity.Player {
 
 func restoreLevel(ls LevelState) *entity.Level {
 	level := &entity.Level{
+		Coordinates: ls.Coordinates,
 		EndOfLevel:  ls.EndOfLevel,
+		Doors:       logic.CopySlice(ls.Doors),
+		DoorNumber:  len(ls.Doors),
 	}
 
 	level.Passages = entity.Passages{
@@ -288,6 +340,9 @@ func restoreLevel(ls LevelState) *entity.Level {
 
 		room.Consumables.WeaponNumber = len(rs.Consumables.Weapons)
 		copy(room.Consumables.WeaponRoom[:], rs.Consumables.Weapons)
+
+		room.Consumables.KeyNumber = len(rs.Consumables.Keys)
+		copy(room.Consumables.RoomKeys[:], rs.Consumables.Keys)
 	}
 
 	return level

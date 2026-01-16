@@ -52,8 +52,15 @@ type PassageDTO struct {
 	Height   int         `json:"height"`
 }
 
+type DoorDTO struct {
+	Position ObjectDTO `json:"position"`
+	Color    int       `json:"color"`
+	IsOpen   bool      `json:"is_open"`
+}
+
 type LevelDTO struct {
 	Rooms      []RoomDTO    `json:"rooms"`
 	Passages   []PassageDTO `json:"passages"`
-	EndOfLevel ObjectDTO   `json:"end_of_level"`
+	EndOfLevel ObjectDTO    `json:"end_of_level"`
+	Doors      []DoorDTO     `json:"doors"`
 }

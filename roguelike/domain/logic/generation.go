@@ -7,13 +7,24 @@ import (
 )
 
 func ClearData(level *entity.Level) {
+	level.Coordinates = entity.Object{
+		XYcoords: entity.Pos{X: 0, Y: 0},
+		W:        entity.ROOMS_IN_WIDTH * entity.REGION_WIDTH,
+		H:        entity.ROOMS_IN_HEIGHT * entity.REGION_HEIGHT,
+	}
+
 	for room := 0; room < entity.ROOMS_NUM; room++ {
 		level.Rooms[room].MonsterNumbers = 0
 		level.Rooms[room].Consumables.FoodNumber = 0
 		level.Rooms[room].Consumables.WeaponNumber = 0
 		level.Rooms[room].Consumables.ElixirNumber = 0
 		level.Rooms[room].Consumables.ScrollNumber = 0
+		level.Rooms[room].Consumables.KeyNumber = 0
 	}
+	level.Passages.Passages = make([]entity.Passage, 0)
+	level.Passages.PassagesNumber = 0
+	level.Doors = make([]entity.Door, 0, entity.MAX_DOORS_PER_LEVEL)
+	level.DoorNumber = 0
 }
 
 func GenerateNextRoom(level *entity.Level, player *entity.Player) {
@@ -32,11 +43,30 @@ func GenerateRooms(room []entity.Room) {
 
 		LeftRangeCoord := regionX*entity.REGION_WIDTH + 1
 		RightRangeCoord := (regionX+1)*entity.REGION_WIDTH - WidthRoom - 1
+		if RightRangeCoord <= LeftRangeCoord {
+			RightRangeCoord = LeftRangeCoord + 1
+		}
+		if RightRangeCoord < LeftRangeCoord {
+			RightRangeCoord = LeftRangeCoord
+		}
 		XCoord := GetRandomInRange(LeftRangeCoord, RightRangeCoord)
 
 		UpRangeCoord := regionY*entity.REGION_HEIGHT + 1
-		BottomRangeCoord := regionY*entity.REGION_HEIGHT - HeightRoom - 1
+		BottomRangeCoord := (regionY+1)*entity.REGION_HEIGHT - HeightRoom - 1
+		if BottomRangeCoord <= UpRangeCoord {
+			BottomRangeCoord = UpRangeCoord + 1
+		}
+		if BottomRangeCoord < UpRangeCoord {
+			BottomRangeCoord = UpRangeCoord
+		}
 		YCoord := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
+
+		if WidthRoom < entity.MIN_ROOM_WIDTH {
+			WidthRoom = entity.MIN_ROOM_WIDTH
+		}
+		if HeightRoom < entity.MIN_ROOM_HEIGHT {
+			HeightRoom = entity.MIN_ROOM_HEIGHT
+		}
 
 		room[i].Coordinates.W = WidthRoom
 		room[i].Coordinates.H = HeightRoom
@@ -90,24 +120,26 @@ func GenerateHorizontalPassage(FirstRoom, SecondRoom int, room []entity.Room, pa
 	FirstCoords := room[FirstRoom].Coordinates
 	SecondCoords := room[SecondRoom].Coordinates
 
-	// правая стена первой комнаты
 	FirstX := FirstCoords.XYcoords.X + FirstCoords.W - 1
 	UpRangeCoord := FirstCoords.XYcoords.Y + 1
 	BottomRangeCoord := FirstCoords.XYcoords.Y + FirstCoords.H - 2
+	if BottomRangeCoord < UpRangeCoord {
+		BottomRangeCoord = UpRangeCoord
+	}
 	FirstY := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
-	// левая стена второй комнаты
 	SecondX := SecondCoords.XYcoords.X
 	UpRangeCoord = SecondCoords.XYcoords.Y + 1
 	BottomRangeCoord = SecondCoords.XYcoords.Y + SecondCoords.H - 2
+	if BottomRangeCoord < UpRangeCoord {
+		BottomRangeCoord = UpRangeCoord
+	}
 	SecondY := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
 	if FirstY == SecondY {
-		// прямой коридор
 		CreatePassage(FirstX, FirstY, Abs(SecondX-FirstX)+1, 1, passages)
 	} else {
 		Vertical := GetRandomInRange(Min(FirstX, SecondX)+1, Max(FirstX, SecondX)-1)
-		// коридор с изгибом
 		CreatePassage(FirstX, FirstY, Abs(Vertical-FirstX)+1, 1, passages)
 		CreatePassage(Vertical, Min(FirstY, SecondY), 1, Abs(SecondY-FirstY)+1, passages)
 		CreatePassage(Vertical, SecondY, Abs(SecondX-Vertical)+1, 1, passages)
@@ -118,37 +150,40 @@ func GenerateVerticalPassages(FirstRoom, SecondRoom int, room []entity.Room, pas
 	FirstCoords := room[FirstRoom].Coordinates
 	SecondCoords := room[SecondRoom].Coordinates
 
-	FirstY := FirstCoords.XYcoords.Y + FirstCoords.H
+	FirstY := FirstCoords.XYcoords.Y + FirstCoords.H - 1
 	UpRangeCoord := FirstCoords.XYcoords.X + 1
 	BottomRangeCoord := FirstCoords.XYcoords.X + FirstCoords.W - 2
+	if BottomRangeCoord < UpRangeCoord {
+		BottomRangeCoord = UpRangeCoord
+	}
 	FirstX := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
 	SecondY := SecondCoords.XYcoords.Y
 	UpRangeCoord = SecondCoords.XYcoords.X + 1
 	BottomRangeCoord = SecondCoords.XYcoords.X + SecondCoords.W - 2
+	if BottomRangeCoord < UpRangeCoord {
+		BottomRangeCoord = UpRangeCoord
+	}
 	SecondX := GetRandomInRange(UpRangeCoord, BottomRangeCoord)
 
 	if FirstX == SecondX {
-		// прямой коридор
 		CreatePassage(FirstX, FirstY, 1, Abs(SecondY-FirstY)+1, passages)
 	} else {
 		Horizont := GetRandomInRange(Min(FirstY, SecondY)+1, Max(FirstY, SecondY)-1)
-		// коридор с изгибом
 		CreatePassage(FirstX, FirstY, 1, Abs(Horizont-FirstY)+1, passages)
-		CreatePassage(min(FirstX, SecondX), Horizont, Abs(SecondX-FirstX)+1, 1, passages)
+		CreatePassage(Min(FirstX, SecondX), Horizont, Abs(SecondX-FirstX)+1, 1, passages)
 		CreatePassage(SecondX, Horizont, 1, Abs(SecondY-Horizont)+1, passages)
 	}
 }
 
 func GeneratePassages(passages *entity.Passages, rooms []entity.Room) {
-	// Создание массива ребер и получение его случайной перестановки
 	passages.PassagesNumber = 0
 	var countPassages int
 	edges := make([]datastructs.Edge, entity.MAX_PASSAGES_NUM)
 	GenerateEdgesForRooms(edges, &countPassages)
 	ShuffleEdges(edges[:countPassages])
 
-	// Коридоры между комнатами будут создаваться при помощи системы непересекающихся множеств
+	// Используется DSU для гарантии связности графа
 	parent := make([]int, entity.ROOMS_NUM)
 	rank := make([]int, entity.ROOMS_NUM)
 	datastructs.MakeSets(parent, rank)
@@ -170,8 +205,15 @@ func GenerateCoordsOfEntity(room *entity.Room, coords *entity.Object) {
 	UpperLeftX := room.Coordinates.XYcoords.X + 1
 	UpperLeftY := room.Coordinates.XYcoords.Y + 1
 
-	LowerRightX := room.Coordinates.XYcoords.X + room.Coordinates.W - 3
-	LowerRightY := room.Coordinates.XYcoords.Y + room.Coordinates.H - 3
+	LowerRightX := UpperLeftX + room.Coordinates.W - 3
+	LowerRightY := UpperLeftY + room.Coordinates.H - 3
+
+	if LowerRightX < UpperLeftX {
+		LowerRightX = UpperLeftX
+	}
+	if LowerRightY < UpperLeftY {
+		LowerRightY = UpperLeftY
+	}
 
 	coords.XYcoords.X = GetRandomInRange(UpperLeftX, LowerRightX)
 	coords.XYcoords.Y = GetRandomInRange(UpperLeftY, LowerRightY)
@@ -181,7 +223,7 @@ func GenerateCoordsOfEntity(room *entity.Room, coords *entity.Object) {
 }
 
 func GeneratePlayer(rooms []entity.Room, player *entity.Player) int {
-	PlayerRoom := GetRandomInRange(0, entity.ROOMS_NUM)
+	PlayerRoom := GetRandomInRange(0, entity.ROOMS_NUM-1)
 	GenerateCoordsOfEntity(&rooms[PlayerRoom], &player.BaseStats.Pos)
 	return PlayerRoom
 }
@@ -190,17 +232,14 @@ func GenerateExit(level *entity.Level, playerRoom int) {
 	var exitRoom int
 
 	for {
-		// выбираем случайную комнату
 		exitRoom = GetRandomInRange(0, entity.ROOMS_NUM-1)
 
-		// нельзя в комнате игрока
 		for exitRoom == playerRoom {
 			exitRoom = GetRandomInRange(0, entity.ROOMS_NUM-1)
 		}
 
 		room := level.Rooms[exitRoom]
 
-		// отступаем от стен
 		upperLeftX := room.Coordinates.XYcoords.X + 2
 		upperLeftY := room.Coordinates.XYcoords.Y + 2
 
@@ -213,15 +252,14 @@ func GenerateExit(level *entity.Level, playerRoom int) {
 		level.EndOfLevel.W = 1
 		level.EndOfLevel.H = 1
 
-		// проверка, что место свободно
 		if CheckUnoccupiedRoom(&level.EndOfLevel, &level.Rooms[exitRoom]) {
 			break
 		}
 	}
 }
 
-func GenerateMonsterData(monster *entity.Monster, levelNum int) {
-	monster.Type = entity.MonsterType(GetRandomInRange(0, 4))
+func GenerateMonsterData(monster *entity.Monster, levelNum int, balanceAdjustment int) {
+	monster.Type = entity.MonsterType(GetRandomInRange(0, 5))
 
 	switch monster.Type {
 	case entity.Zombie:
@@ -253,10 +291,20 @@ func GenerateMonsterData(monster *entity.Monster, levelNum int) {
 		monster.Stats.Agility = 100
 		monster.Stats.Strength = 30
 		monster.Stats.Health = 100
+
+	case entity.Mimic:
+		monster.Hostility = entity.Low
+		monster.Stats.Agility = 100
+		monster.Stats.Strength = 30
+		monster.Stats.Health = 120
 	}
 
-	// Масштабирование сложности от уровня
 	percentsUpdate := entity.PERCENTS_UPDATE_DIFFICULTY_MONSTERS * levelNum
+	percentsUpdate += balanceAdjustment
+
+	if percentsUpdate < 0 {
+		percentsUpdate = 0
+	}
 
 	monster.Stats.Agility += monster.Stats.Agility * percentsUpdate / 100
 	monster.Stats.Strength += monster.Stats.Strength * percentsUpdate / 100
@@ -266,16 +314,25 @@ func GenerateMonsterData(monster *entity.Monster, levelNum int) {
 	monster.Dir = entity.Stop
 }
 
-func GenerateMonsters(level *entity.Level, playerRoom int) {
-	// Максимум монстров растёт с уровнем
+func GenerateMonsters(level *entity.Level, playerRoom int, balance BalanceAdjustment) {
 	maxMonsters := entity.MAX_MONSTERS_PER_ROOM + level.LevelNumber/entity.LEVEL_UPDATE_DIFFICULTY
+	maxMonsters += balance.MonsterCount
+	if maxMonsters < 0 {
+		maxMonsters = 0
+	}
+	if maxMonsters > entity.MAX_MONSTERS_PER_ROOM+3 {
+		maxMonsters = entity.MAX_MONSTERS_PER_ROOM + 3
+	}
 
 	for room := 0; room < entity.ROOMS_NUM; room++ {
 		if room == playerRoom {
 			continue
 		}
 
-		countMonsters := GetRandomInRange(0, maxMonsters)
+		countMonsters := GetRandomInRange(1, maxMonsters)
+		if countMonsters > entity.MAX_MONSTERS_PER_ROOM {
+			countMonsters = entity.MAX_MONSTERS_PER_ROOM
+		}
 
 		for i := 0; i < countMonsters; i++ {
 			coords := &level.Rooms[room].Monsters[i].Stats.Pos
@@ -287,13 +344,13 @@ func GenerateMonsters(level *entity.Level, playerRoom int) {
 				}
 			}
 
-			GenerateMonsterData(&level.Rooms[room].Monsters[i], level.LevelNumber)
+			GenerateMonsterData(&level.Rooms[room].Monsters[i], level.LevelNumber, balance.MonsterDifficulty)
 			level.Rooms[room].MonsterNumbers++
 		}
 	}
 }
 
-func GenerateFoodData(food *entity.Food, player *entity.Player) {
+func GenerateFoodData(food *entity.Food, player *entity.Player, foodBonus int) {
 	names := [entity.CONSUMABLES_TYPE_MAX_NUM]string{
 		"Ration of the Ironclad",
 		"Crimson Berry Cluster",
@@ -306,11 +363,15 @@ func GenerateFoodData(food *entity.Food, player *entity.Player) {
 		"Dried Mushrooms of the Deep"}
 
 	MaxRegen := player.BaseStats.Health * entity.MAX_PERCENT_FOOD_REGEN_FROM_HEALTH / 100
+	MaxRegen = MaxRegen + MaxRegen*float64(foodBonus)/100
+	if MaxRegen < 1 {
+		MaxRegen = 1
+	}
 	food.ToRegen = GetRandomInRange(1, int(MaxRegen))
 	food.Name = names[GetRandomInRange(0, entity.CONSUMABLES_TYPE_MAX_NUM-1)]
 }
 
-func GenerateFood(room *entity.Room, player *entity.Player) {
+func GenerateFood(room *entity.Room, player *entity.Player, foodBonus int) {
 	CountFood := room.Consumables.FoodNumber
 	Coords := &room.Consumables.RoomFood[CountFood].Geometry
 
@@ -321,7 +382,7 @@ func GenerateFood(room *entity.Room, player *entity.Player) {
 		}
 	}
 
-	GenerateFoodData(&room.Consumables.RoomFood[CountFood].Food, player)
+	GenerateFoodData(&room.Consumables.RoomFood[CountFood].Food, player, foodBonus)
 	room.Consumables.FoodNumber++
 }
 
@@ -452,17 +513,19 @@ func GenerateWeapon(room *entity.Room, player *entity.Player) {
 	room.Consumables.WeaponNumber++
 }
 
-func GenerateConsumables(level *entity.Level, playerRoom int, player *entity.Player, levelNum int) {
-	generateFuncs := []func(*entity.Room, *entity.Player){
-		GenerateFood,
-		GenerateElixir,
-		GenerateScroll,
-		GenerateWeapon,
-	}
-
+func GenerateConsumables(level *entity.Level, playerRoom int, player *entity.Player, levelNum int, balance BalanceAdjustment) {
 	maxConsumables := entity.MAX_CONSUMABLES_PER_ROOM - levelNum/entity.LEVEL_UPDATE_DIFFICULTY
+	maxConsumables += balance.ConsumableCount
 	if maxConsumables < 1 {
 		maxConsumables = 1
+	}
+	if maxConsumables > entity.MAX_CONSUMABLES_PER_ROOM+2 {
+		maxConsumables = entity.MAX_CONSUMABLES_PER_ROOM + 2
+	}
+
+	foodWeight := 30
+	if balance.FoodBonus > 0 {
+		foodWeight = 50
 	}
 
 	for room := 0; room < entity.ROOMS_NUM; room++ {
@@ -473,7 +536,324 @@ func GenerateConsumables(level *entity.Level, playerRoom int, player *entity.Pla
 		countConsumables := GetRandomInRange(0, maxConsumables)
 		for i := 0; i < countConsumables; i++ {
 			consumableType := GetRandomInRange(0, entity.CONSUMABLES_TYPES_NUM-1)
-			generateFuncs[consumableType](&level.Rooms[room], player)
+
+			if balance.FoodBonus > 0 && GetRandomInRange(0, 100) < foodWeight {
+				consumableType = 0
+			}
+
+			switch consumableType {
+			case 0:
+				GenerateFood(&level.Rooms[room], player, balance.FoodBonus)
+			case 1:
+				GenerateElixir(&level.Rooms[room], player)
+			case 2:
+				GenerateScroll(&level.Rooms[room], player)
+			case 3:
+				GenerateWeapon(&level.Rooms[room], player)
+			}
 		}
 	}
+}
+
+func GenerateDoorsAndKeys(level *entity.Level, playerRoom int) {
+	generateDoorsAndKeysRecursive(level, playerRoom, 0)
+}
+
+func generateDoorsAndKeysRecursive(level *entity.Level, playerRoom int, attempts int) {
+	if attempts > 20 {
+		return
+	}
+
+	doors := make([]entity.Door, 0)
+	keyColors := []entity.KeyColor{entity.RedKey, entity.BlueKey, entity.YellowKey, entity.GreenKey}
+
+	usedColors := make(map[entity.KeyColor]bool)
+	roomPassageCount := make(map[int]int)
+	roomDoorCount := make(map[int]int)
+
+	for i := 0; i < level.Passages.PassagesNumber; i++ {
+		passage := &level.Passages.Passages[i]
+		adjacentRooms := getAdjacentRooms(passage, level)
+		for _, roomIdx := range adjacentRooms {
+			roomPassageCount[roomIdx]++
+		}
+	}
+
+	playerRoomPassageCount := 0
+	for i := 0; i < level.Passages.PassagesNumber; i++ {
+		passage := &level.Passages.Passages[i]
+		adjacentRooms := getAdjacentRooms(passage, level)
+		for _, roomIdx := range adjacentRooms {
+			if roomIdx == playerRoom {
+				playerRoomPassageCount++
+				break
+			}
+		}
+	}
+
+	playerRoomOpenPassages := 0
+
+	for i := 0; i < level.Passages.PassagesNumber; i++ {
+		passage := &level.Passages.Passages[i]
+
+		adjacentRooms := getAdjacentRooms(passage, level)
+		if len(adjacentRooms) < 2 {
+			continue
+		}
+
+		canPlaceDoor := true
+		hasPlayerRoom := false
+		for _, roomIdx := range adjacentRooms {
+			if roomIdx == playerRoom {
+				hasPlayerRoom = true
+				break
+			}
+		}
+
+		if !hasPlayerRoom {
+			for _, roomIdx := range adjacentRooms {
+				if roomDoorCount[roomIdx] >= roomPassageCount[roomIdx] {
+					canPlaceDoor = false
+					break
+				}
+			}
+		} else {
+			if playerRoomOpenPassages == 0 {
+				canPlaceDoor = false
+			} else if playerRoomOpenPassages >= playerRoomPassageCount {
+				canPlaceDoor = false
+			} else {
+				for _, roomIdx := range adjacentRooms {
+					if roomDoorCount[roomIdx] >= roomPassageCount[roomIdx] {
+						canPlaceDoor = false
+						break
+					}
+				}
+			}
+		}
+
+		if GetRandomInRange(0, 100) < 70 && canPlaceDoor {
+			color := keyColors[GetRandomInRange(0, len(keyColors)-1)]
+			usedColors[color] = true
+
+			doorPos := findDoorPosition(passage)
+			if doorPos.XYcoords.X >= 0 && doorPos.XYcoords.Y >= 0 {
+				doors = append(doors, entity.Door{
+					Position: doorPos,
+					Color:    color,
+					IsOpen:   false,
+				})
+				for _, roomIdx := range adjacentRooms {
+					roomDoorCount[roomIdx]++
+				}
+				if hasPlayerRoom {
+					playerRoomOpenPassages++
+				}
+			}
+		} else if hasPlayerRoom {
+			playerRoomOpenPassages++
+		}
+	}
+
+	level.Doors = doors
+	level.DoorNumber = len(doors)
+
+	if level.DoorNumber == 0 && attempts < 5 {
+		generateDoorsAndKeysRecursive(level, playerRoom, attempts+1)
+		return
+	}
+
+	keyRooms := make([]int, 0)
+	if len(usedColors) > 0 {
+		accessibleRooms := getAccessibleRooms(level, playerRoom)
+		accessibleRoomsList := make([]int, 0)
+		for i := 0; i < entity.ROOMS_NUM; i++ {
+			if i != playerRoom && accessibleRooms[i] {
+				accessibleRoomsList = append(accessibleRoomsList, i)
+			}
+		}
+
+		if len(accessibleRoomsList) == 0 {
+			if attempts < 20 {
+				level.Doors = make([]entity.Door, 0)
+				level.DoorNumber = 0
+				generateDoorsAndKeysRecursive(level, playerRoom, attempts+1)
+				return
+			}
+		}
+
+		for color := range usedColors {
+			var room int
+			if len(accessibleRoomsList) > 0 {
+				room = accessibleRoomsList[GetRandomInRange(0, len(accessibleRoomsList)-1)]
+			} else {
+				room = GetRandomInRange(0, entity.ROOMS_NUM-1)
+				for room == playerRoom {
+					room = GetRandomInRange(0, entity.ROOMS_NUM-1)
+				}
+			}
+			keyRooms = append(keyRooms, room)
+			GenerateKey(&level.Rooms[room], color)
+		}
+	}
+
+	if len(keyRooms) > 0 && !ValidateKeyAccessibility(level, playerRoom, keyRooms) {
+		if attempts < 20 {
+			for _, roomIdx := range keyRooms {
+				level.Rooms[roomIdx].Consumables.KeyNumber = 0
+			}
+			level.Doors = make([]entity.Door, 0)
+			level.DoorNumber = 0
+			generateDoorsAndKeysRecursive(level, playerRoom, attempts+1)
+			return
+		}
+	}
+}
+
+func findDoorPosition(passage *entity.Passage) entity.Object {
+	midX := passage.XYcoords.X + passage.W/2
+	midY := passage.XYcoords.Y + passage.H/2
+
+	return entity.Object{
+		XYcoords: entity.Pos{X: midX, Y: midY},
+		W:        1,
+		H:        1,
+	}
+}
+
+func GenerateKey(room *entity.Room, color entity.KeyColor) {
+	if room.Consumables.KeyNumber >= int(entity.KeyColorCount) {
+		return
+	}
+
+	coords := &room.Consumables.RoomKeys[room.Consumables.KeyNumber].Geometry
+
+	for {
+		GenerateCoordsOfEntity(room, coords)
+		if CheckUnoccupiedRoom(coords, room) {
+			break
+		}
+	}
+
+	room.Consumables.RoomKeys[room.Consumables.KeyNumber].Key.Color = color
+	room.Consumables.KeyNumber++
+}
+
+func getAccessibleRooms(level *entity.Level, startRoom int) map[int]bool {
+	accessible := make(map[int]bool)
+	accessible[startRoom] = true
+
+	queue := []int{startRoom}
+	keys := make(map[entity.KeyColor]bool)
+
+	for len(queue) > 0 {
+		currentRoom := queue[0]
+		queue = queue[1:]
+
+		for i := 0; i < level.Rooms[currentRoom].Consumables.KeyNumber; i++ {
+			keyColor := level.Rooms[currentRoom].Consumables.RoomKeys[i].Key.Color
+			keys[keyColor] = true
+		}
+
+		for i := 0; i < level.Passages.PassagesNumber; i++ {
+			passage := &level.Passages.Passages[i]
+
+			adjacentRooms := getAdjacentRooms(passage, level)
+			if len(adjacentRooms) < 2 {
+				continue
+			}
+
+			room1, room2 := adjacentRooms[0], adjacentRooms[1]
+
+			canPass := true
+			for j := 0; j < level.DoorNumber; j++ {
+				door := &level.Doors[j]
+				if isDoorInPassage(door, passage) {
+					canPass = door.IsOpen || keys[door.Color]
+					break
+				}
+			}
+
+			if !canPass {
+				continue
+			}
+
+			if room1 == currentRoom && !accessible[room2] {
+				accessible[room2] = true
+				queue = append(queue, room2)
+			} else if room2 == currentRoom && !accessible[room1] {
+				accessible[room1] = true
+				queue = append(queue, room1)
+			}
+		}
+	}
+
+	return accessible
+}
+
+func ValidateKeyAccessibility(level *entity.Level, startRoom int, keyRooms []int) bool {
+	accessible := getAccessibleRooms(level, startRoom)
+
+	for _, keyRoom := range keyRooms {
+		if !accessible[keyRoom] {
+			return false
+		}
+	}
+
+	exitRoom := -1
+	for i := 0; i < entity.ROOMS_NUM; i++ {
+		room := &level.Rooms[i]
+		if level.EndOfLevel.XYcoords.X >= room.Coordinates.XYcoords.X &&
+			level.EndOfLevel.XYcoords.X < room.Coordinates.XYcoords.X+room.Coordinates.W &&
+			level.EndOfLevel.XYcoords.Y >= room.Coordinates.XYcoords.Y &&
+			level.EndOfLevel.XYcoords.Y < room.Coordinates.XYcoords.Y+room.Coordinates.H {
+			exitRoom = i
+			break
+		}
+	}
+
+	if exitRoom >= 0 && !accessible[exitRoom] {
+		return false
+	}
+
+	return true
+}
+
+func getAdjacentRooms(passage *entity.Passage, level *entity.Level) []int {
+	rooms := make([]int, 0)
+
+	for i := 0; i < entity.ROOMS_NUM; i++ {
+		room := &level.Rooms[i]
+		if isPassageAdjacentToRoomForDoors(passage, room) {
+			rooms = append(rooms, i)
+		}
+	}
+
+	return rooms
+}
+
+func isPassageAdjacentToRoomForDoors(passage *entity.Passage, room *entity.Room) bool {
+	px1 := passage.XYcoords.X
+	py1 := passage.XYcoords.Y
+	px2 := px1 + passage.W
+	py2 := py1 + passage.H
+
+	rx1 := room.Coordinates.XYcoords.X
+	ry1 := room.Coordinates.XYcoords.Y
+	rx2 := rx1 + room.Coordinates.W
+	ry2 := ry1 + room.Coordinates.H
+
+	return (px2 >= rx1 && px1 <= rx2 && py2 >= ry1 && py1 <= ry2)
+}
+
+func isDoorInPassage(door *entity.Door, passage *entity.Passage) bool {
+	dx := door.Position.XYcoords.X
+	dy := door.Position.XYcoords.Y
+
+	px1 := passage.XYcoords.X
+	py1 := passage.XYcoords.Y
+	px2 := px1 + passage.W
+	py2 := py1 + passage.H
+
+	return dx >= px1 && dx < px2 && dy >= py1 && dy < py2
 }

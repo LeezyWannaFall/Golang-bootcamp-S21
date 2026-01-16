@@ -28,7 +28,12 @@ func (r *JSONGameSaveRepository) SaveGame(state game.GameSessionState) error {
 		return err
 	}
 
-	return os.WriteFile(r.path, data, 0644)
+	err = os.WriteFile(r.path, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *JSONGameSaveRepository) LoadGame() (game.GameSessionState, error) {

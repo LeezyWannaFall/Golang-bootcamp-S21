@@ -12,8 +12,23 @@ func (gs *GameSession) InitLevel() {
 	logic.GeneratePassages(&gs.CurrentLevel.Passages, gs.CurrentLevel.Rooms[:])
 	gs.CurrentRoom = logic.GeneratePlayer(gs.CurrentLevel.Rooms[:], gs.Player)
 	logic.GenerateExit(gs.CurrentLevel, gs.CurrentRoom)
-	logic.GenerateMonsters(gs.CurrentLevel, gs.CurrentRoom)
-	logic.GenerateConsumables(gs.CurrentLevel, gs.CurrentRoom, gs.Player, gs.CurrentLevel.LevelNumber)
+	
+	stats := logic.SessionStatistics{
+		TreasuresCollected: gs.Statistics.TreasuresCollected,
+		DeepestLevel:       gs.Statistics.DeepestLevel,
+		EnemiesDefeated:    gs.Statistics.EnemiesDefeated,
+		FoodConsumed:       gs.Statistics.FoodConsumed,
+		ElixirsDrunk:       gs.Statistics.ElixirsDrunk,
+		ScrollsRead:        gs.Statistics.ScrollsRead,
+		AttacksDealt:       gs.Statistics.AttacksDealt,
+		AttacksMissed:      gs.Statistics.AttacksMissed,
+		TilesTraveled:      gs.Statistics.TilesTraveled,
+	}
+	
+	balance := logic.CalculateBalanceAdjustment(stats, gs.CurrentLevel.LevelNumber)
+	logic.GenerateMonsters(gs.CurrentLevel, gs.CurrentRoom, balance)
+	logic.GenerateConsumables(gs.CurrentLevel, gs.CurrentRoom, gs.Player, gs.CurrentLevel.LevelNumber, balance)
+	logic.GenerateDoorsAndKeys(gs.CurrentLevel, gs.CurrentRoom)
 }
 
 func (gs *GameSession) GameLoop() {
@@ -21,7 +36,6 @@ func (gs *GameSession) GameLoop() {
 	gs.InitLevel()
 
 	for gs.IsRunning {
-		// TODO: интеграция с presentation layer для получения ввода
 		gs.ProcessMonstersTurn()
 
 		if gs.CheckGameOver() {
@@ -41,15 +55,39 @@ func (gs *GameSession) GameLoop() {
 }
 
 func (gs *GameSession) ProcessPlayerTurn(direction entity.Direction) {
+	if direction == entity.Stop {
+		return
+	}
+
 	prevPos := gs.Player.BaseStats.Pos
+
 	characters.MoveCharacterByDirectionObj(direction, &gs.Player.BaseStats.Pos)
+
+	newCoords := entity.Pos{
+		X: gs.Player.BaseStats.Pos.XYcoords.X,
+		Y: gs.Player.BaseStats.Pos.XYcoords.Y,
+	}
+
+	if characters.IsOutsideLevel(newCoords, gs.CurrentLevel) {
+		gs.Player.BaseStats.Pos = prevPos
+		return
+	}
+
+	if !characters.IsPassable(newCoords, gs.CurrentLevel) {
+		gs.TryOpenDoor(newCoords)
+		if !characters.IsPassable(newCoords, gs.CurrentLevel) {
+			gs.Player.BaseStats.Pos = prevPos
+			return
+		}
+	}
 
 	characters.CheckTempEffectEnd(gs.Player)
 
 	monster := gs.FindMonsterAtPosition(&gs.Player.BaseStats.Pos)
 	if monster != nil {
 		gs.Player.BaseStats.Pos = prevPos
-		gs.InitiateBattle(monster)
+		gs.InitiateBattle(monster, gs.CurrentLevel)
+		return
 	}
 
 	if prevPos.XYcoords.X != gs.Player.BaseStats.Pos.XYcoords.X || prevPos.XYcoords.Y != gs.Player.BaseStats.Pos.XYcoords.Y {
@@ -76,7 +114,7 @@ func (gs *GameSession) ProcessMonstersTurn() {
 	}
 }
 
-func (gs *GameSession) InitiateBattle(monster *entity.Monster) {
+func (gs *GameSession) InitiateBattle(monster *entity.Monster, level *entity.Level) {
 	battleInfo := &characters.BattleInfo{
 		Enemy:              monster,
 		VampireFirstAttack: monster.Type == entity.Vampire,
@@ -85,11 +123,11 @@ func (gs *GameSession) InitiateBattle(monster *entity.Monster) {
 		IsFighting:         true,
 	}
 
-	characters.Attack(gs.Player, battleInfo, characters.PlayerTurn)
+	characters.Attack(gs.Player, battleInfo, characters.PlayerTurn, level)
 	gs.IncrementAttacksDealt()
 
 	if monster.Stats.Health > 0 {
-		characters.Attack(gs.Player, battleInfo, characters.MonsterTurn)
+		characters.Attack(gs.Player, battleInfo, characters.MonsterTurn, level)
 	} else {
 		gs.IncrementEnemiesDefeated()
 	}
@@ -169,6 +207,35 @@ func (gs *GameSession) CheckAndPickupItems(room *entity.Room) {
 			gs.Player.Backpack.CurrentSize++
 			gs.removeWeaponFromRoom(room, i)
 			wasConsumed = true
+		}
+	}
+
+	for i := 0; i < room.Consumables.KeyNumber; i++ {
+		itemPos := &room.Consumables.RoomKeys[i].Geometry
+		if playerPos.XYcoords.X == itemPos.XYcoords.X && playerPos.XYcoords.Y == itemPos.XYcoords.Y {
+			keyColor := room.Consumables.RoomKeys[i].Key.Color
+			gs.Player.Backpack.Keys[keyColor] = true
+			gs.removeKeyFromRoom(room, i)
+			break
+		}
+	}
+}
+
+func (gs *GameSession) removeKeyFromRoom(room *entity.Room, index int) {
+	if index < room.Consumables.KeyNumber-1 {
+		room.Consumables.RoomKeys[index] = room.Consumables.RoomKeys[room.Consumables.KeyNumber-1]
+	}
+	room.Consumables.KeyNumber--
+}
+
+func (gs *GameSession) TryOpenDoor(pos entity.Pos) {
+	for i := 0; i < gs.CurrentLevel.DoorNumber; i++ {
+		door := &gs.CurrentLevel.Doors[i]
+		if pos.X == door.Position.XYcoords.X && pos.Y == door.Position.XYcoords.Y {
+			if !door.IsOpen && gs.Player.Backpack.Keys[door.Color] {
+				door.IsOpen = true
+			}
+			break
 		}
 	}
 }

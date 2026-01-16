@@ -252,7 +252,6 @@ func RemoveFromBackpack(backpack *entity.Backpack, consumableType ConsumableType
 func CheckTempEffectEnd(player *entity.Player) {
 	currentTime := time.Now().Unix()
 
-	// Проверка баффов здоровья
 	for i := 0; i < player.ElixirBuffs.CurrentHealthBuffNumber; {
 		if player.ElixirBuffs.MaxHealth[i].EffectEnd > currentTime {
 			i++
@@ -267,7 +266,6 @@ func CheckTempEffectEnd(player *entity.Player) {
 		}
 	}
 
-	// Проверка баффов ловкости
 	for i := 0; i < player.ElixirBuffs.CurrentAgilityBuffNumber; {
 		if player.ElixirBuffs.Agility[i].EffectEnd > currentTime {
 			i++
@@ -278,7 +276,6 @@ func CheckTempEffectEnd(player *entity.Player) {
 		}
 	}
 
-	// Проверка баффов силы
 	for i := 0; i < player.ElixirBuffs.CurrentStrengthBuffNumber; {
 		if player.ElixirBuffs.Strength[i].EffectEnd > currentTime {
 			i++
