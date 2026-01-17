@@ -92,6 +92,10 @@ func MoveCharacterByDirectionObj(direction entity.Direction, characterGeometry *
 }
 
 func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Player) {
+	if monster.Type == entity.Mimic {
+		return
+	}
+
 	var path []entity.Pos
 
 	if IsPlayerNear(monster, player) {
@@ -110,8 +114,6 @@ func MoveMonster(monster *entity.Monster, level *entity.Level, player *entity.Pl
 			patternOgre(monster, level)
 		case entity.Snake:
 			patternSnake(monster, level)
-		case entity.Mimic:
-			patternZombie(monster, level)
 		}
 		return
 	}
@@ -276,7 +278,6 @@ func patternGhost(monster *entity.Monster, level *entity.Level) {
 		}
 	}
 }
-
 
 func patternOgre(monster *entity.Monster, level *entity.Level) {
 	monsterObj := entity.Object{
@@ -554,16 +555,15 @@ func DistanceChebyshev(first, second entity.Pos) int {
 }
 
 func RemoveMonsterFromRoom(level *entity.Level, monster *entity.Monster) {
-    for i := range level.Rooms {
-        room := &level.Rooms[i]
-        for j := 0; j < room.MonsterNumbers; j++ {
-            if &room.Monsters[j] == monster {
-                // сдвигаем массив
-                room.Monsters[j] = room.Monsters[room.MonsterNumbers-1]
-                room.MonsterNumbers--
-                return
-            }
-        }
-    }
+	for i := range level.Rooms {
+		room := &level.Rooms[i]
+		for j := 0; j < room.MonsterNumbers; j++ {
+			if &room.Monsters[j] == monster {
+				// сдвигаем массив
+				room.Monsters[j] = room.Monsters[room.MonsterNumbers-1]
+				room.MonsterNumbers--
+				return
+			}
+		}
+	}
 }
-

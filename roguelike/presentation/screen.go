@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"roguelike/domain/game"
+	"roguelike/domain/characters"
 	"github.com/rthornton128/goncurses"
 	"roguelike/domain/entity"
 )
@@ -356,11 +357,9 @@ func ElixirScreen(stdscr *goncurses.Window, gs *game.GameSession) {
 	if key >= '1' && key <= '0'+countElixir {
 		idx := key - '1'
 		if idx >= 0 && int(idx) < countElixir {
-			// Применить эликсир (пример: просто удалить из рюкзака)
-			for j := int(idx); j < countElixir-1; j++ {
-				gs.Player.Backpack.Elixirs[j] = gs.Player.Backpack.Elixirs[j+1]
-			}
-			gs.Player.Backpack.ElixirNumber--
+			// Применить эликсир
+			currentRoom := gs.GetCurrentRoom()
+			characters.UseConsumable(gs.Player, characters.ElixirType, currentRoom, int(idx))
 		}
 	}
 }
@@ -441,11 +440,9 @@ func ScrollScreen(stdscr *goncurses.Window, gs *game.GameSession) {
 	if key >= '1' && key <= '0'+countScroll {
 		idx := key - '1'
 		if idx >= 0 && int(idx) < countScroll {
-			// Применить свиток (пример: просто удалить из рюкзака)
-			for j := int(idx); j < countScroll-1; j++ {
-				gs.Player.Backpack.Scrolls[j] = gs.Player.Backpack.Scrolls[j+1]
-			}
-			gs.Player.Backpack.ScrollNumber--
+			// Применить свиток
+			currentRoom := gs.GetCurrentRoom()
+			characters.UseConsumable(gs.Player, characters.ScrollType, currentRoom, int(idx))
 		}
 	}
 }
