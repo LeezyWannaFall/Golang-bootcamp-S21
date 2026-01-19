@@ -1,5 +1,7 @@
 package logic
 
+import "roguelike/domain/entity"
+
 const (
 	MAX_BALANCE_ADJUSTMENT = 50
 	MIN_BALANCE_ADJUSTMENT = -50
@@ -24,7 +26,7 @@ type SessionStatistics struct {
 	TilesTraveled      int
 }
 
-func CalculateBalanceAdjustment(statistics SessionStatistics, levelNum int) BalanceAdjustment {
+func CalculateBalanceAdjustment(statistics SessionStatistics, levelNum int, player *entity.Player) BalanceAdjustment {
 	adjustment := BalanceAdjustment{
 		MonsterDifficulty: 0,
 		MonsterCount:      0,
@@ -61,12 +63,12 @@ func CalculateBalanceAdjustment(statistics SessionStatistics, levelNum int) Bala
 		missRate = statistics.AttacksMissed * 100 / statistics.AttacksDealt
 	}
 
-	if avgMovesPerLevel > 200 {
+	if avgMovesPerLevel > 100 {
 		adjustment.MonsterDifficulty -= 10
 		adjustment.MonsterCount -= 1
 		adjustment.ConsumableCount += 1
 		adjustment.FoodBonus += 20
-	} else if avgMovesPerLevel < 100 {
+	} else if avgMovesPerLevel < 50 {
 		adjustment.MonsterDifficulty += 10
 		adjustment.MonsterCount += 1
 		adjustment.ConsumableCount -= 1
@@ -101,6 +103,18 @@ func CalculateBalanceAdjustment(statistics SessionStatistics, levelNum int) Bala
 	} else if avgEnemiesPerLevel < 2 && levelNum > 3 {
 		adjustment.MonsterDifficulty -= 5
 		adjustment.MonsterCount -= 1
+	}
+
+	if player != nil {
+		if player.Weapon.Strength != entity.NO_WEAPON {
+			adjustment.MonsterCount += 1
+		}
+		if player.Backpack.FoodNumber > 3 {
+			adjustment.MonsterCount += 1
+		}
+		if player.Backpack.ElixirNumber > 2 {
+			adjustment.MonsterCount += 1
+		}
 	}
 
 	if adjustment.MonsterDifficulty > MAX_BALANCE_ADJUSTMENT {

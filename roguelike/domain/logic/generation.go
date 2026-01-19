@@ -317,8 +317,8 @@ func GenerateMonsterData(monster *entity.Monster, levelNum int, balanceAdjustmen
 func GenerateMonsters(level *entity.Level, playerRoom int, balance BalanceAdjustment) {
 	maxMonsters := entity.MAX_MONSTERS_PER_ROOM + level.LevelNumber/entity.LEVEL_UPDATE_DIFFICULTY
 	maxMonsters += balance.MonsterCount
-	if maxMonsters < 0 {
-		maxMonsters = 0
+	if maxMonsters < 1 {
+		maxMonsters = 1
 	}
 	if maxMonsters > entity.MAX_MONSTERS_PER_ROOM+3 {
 		maxMonsters = entity.MAX_MONSTERS_PER_ROOM + 3
@@ -665,24 +665,29 @@ func generateDoorsAndKeysRecursive(level *entity.Level, playerRoom int, attempts
 
 	keyRooms := make([]int, 0)
 	if len(usedColors) > 0 {
-		accessibleRooms := getAccessibleRooms(level, playerRoom)
-		accessibleRoomsList := make([]int, 0)
-		for i := 0; i < entity.ROOMS_NUM; i++ {
-			if i != playerRoom && accessibleRooms[i] {
-				accessibleRoomsList = append(accessibleRoomsList, i)
-			}
-		}
-
-		if len(accessibleRoomsList) == 0 {
-			if attempts < 20 {
-				level.Doors = make([]entity.Door, 0)
-				level.DoorNumber = 0
-				generateDoorsAndKeysRecursive(level, playerRoom, attempts+1)
-				return
-			}
-		}
-
 		for color := range usedColors {
+			accessibleRooms := getAccessibleRoomsIgnoringDoorColor(level, playerRoom, color)
+			accessibleRoomsList := make([]int, 0)
+			for i := 0; i < entity.ROOMS_NUM; i++ {
+				if i != playerRoom && accessibleRooms[i] {
+					if !isRoomBehindDoorOfColor(level, playerRoom, i, color) {
+						accessibleRoomsList = append(accessibleRoomsList, i)
+					}
+				}
+			}
+
+			if len(accessibleRoomsList) == 0 {
+				if attempts < 20 {
+					for _, roomIdx := range keyRooms {
+						level.Rooms[roomIdx].Consumables.KeyNumber = 0
+					}
+					level.Doors = make([]entity.Door, 0)
+					level.DoorNumber = 0
+					generateDoorsAndKeysRecursive(level, playerRoom, attempts+1)
+					return
+				}
+			}
+
 			var room int
 			if len(accessibleRoomsList) > 0 {
 				room = accessibleRoomsList[GetRandomInRange(0, len(accessibleRoomsList)-1)]
@@ -791,6 +796,62 @@ func getAccessibleRooms(level *entity.Level, startRoom int) map[int]bool {
 	return accessible
 }
 
+func getAccessibleRoomsIgnoringDoorColor(level *entity.Level, startRoom int, ignoreColor entity.KeyColor) map[int]bool {
+	accessible := make(map[int]bool)
+	accessible[startRoom] = true
+
+	queue := []int{startRoom}
+	keys := make(map[entity.KeyColor]bool)
+
+	for len(queue) > 0 {
+		currentRoom := queue[0]
+		queue = queue[1:]
+
+		for i := 0; i < level.Rooms[currentRoom].Consumables.KeyNumber; i++ {
+			keyColor := level.Rooms[currentRoom].Consumables.RoomKeys[i].Key.Color
+			keys[keyColor] = true
+		}
+
+		for i := 0; i < level.Passages.PassagesNumber; i++ {
+			passage := &level.Passages.Passages[i]
+
+			adjacentRooms := getAdjacentRooms(passage, level)
+			if len(adjacentRooms) < 2 {
+				continue
+			}
+
+			room1, room2 := adjacentRooms[0], adjacentRooms[1]
+
+			canPass := true
+			for j := 0; j < level.DoorNumber; j++ {
+				door := &level.Doors[j]
+				if isDoorInPassage(door, passage) {
+					if door.Color == ignoreColor {
+						canPass = true
+					} else {
+						canPass = door.IsOpen || keys[door.Color]
+					}
+					break
+				}
+			}
+
+			if !canPass {
+				continue
+			}
+
+			if room1 == currentRoom && !accessible[room2] {
+				accessible[room2] = true
+				queue = append(queue, room2)
+			} else if room2 == currentRoom && !accessible[room1] {
+				accessible[room1] = true
+				queue = append(queue, room1)
+			}
+		}
+	}
+
+	return accessible
+}
+
 func ValidateKeyAccessibility(level *entity.Level, startRoom int, keyRooms []int) bool {
 	accessible := getAccessibleRooms(level, startRoom)
 
@@ -856,4 +917,18 @@ func isDoorInPassage(door *entity.Door, passage *entity.Passage) bool {
 	py2 := py1 + passage.H
 
 	return dx >= px1 && dx < px2 && dy >= py1 && dy < py2
+}
+
+func isRoomBehindDoorOfColor(level *entity.Level, startRoom, targetRoom int, doorColor entity.KeyColor) bool {
+	accessibleWithoutColor := getAccessibleRoomsIgnoringDoorColor(level, startRoom, doorColor)
+	if accessibleWithoutColor[targetRoom] {
+		return false
+	}
+
+	accessibleWithColor := getAccessibleRooms(level, startRoom)
+	if accessibleWithColor[targetRoom] {
+		return true
+	}
+
+	return false
 }

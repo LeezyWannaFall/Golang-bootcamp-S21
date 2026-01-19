@@ -25,7 +25,7 @@ func (gs *GameSession) InitLevel() {
 		TilesTraveled:      gs.Statistics.TilesTraveled,
 	}
 	
-	balance := logic.CalculateBalanceAdjustment(stats, gs.CurrentLevel.LevelNumber)
+	balance := logic.CalculateBalanceAdjustment(stats, gs.CurrentLevel.LevelNumber, gs.Player)
 	logic.GenerateMonsters(gs.CurrentLevel, gs.CurrentRoom, balance)
 	logic.GenerateConsumables(gs.CurrentLevel, gs.CurrentRoom, gs.Player, gs.CurrentLevel.LevelNumber, balance)
 	logic.GenerateDoorsAndKeys(gs.CurrentLevel, gs.CurrentRoom)

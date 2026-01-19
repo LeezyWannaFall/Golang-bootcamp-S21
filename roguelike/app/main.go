@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-	saveRepo := jsonrepo.NewJSONGameSaveRepository("./save.json")
-	statRepo := jsonrepo.NewJSONStatisticRepository("./stats.json")
+	saveRepo := jsonrepo.NewJSONGameSaveRepository("save.json")
+	statRepo := jsonrepo.NewJSONStatisticRepository("stats.json")
 
 	stdscr, err := presentation.InitCurses()
 	if err != nil {
@@ -121,7 +121,7 @@ func main() {
 				stdscr.Refresh()
 				_ = stdscr.GetChar()
 			} else {
-				savePath, _ := filepath.Abs("./save.json")
+				savePath, _ := filepath.Abs("save.json")
 				stdscr.Clear()
 				stdscr.MovePrint(0, 0, "Game saved successfully!")
 				stdscr.MovePrint(1, 0, fmt.Sprintf("Saved to: %s", savePath))
