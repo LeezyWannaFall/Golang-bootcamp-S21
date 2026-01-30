@@ -3,17 +3,7 @@ package domain
 const FieldSize = 3
 
 type GameField struct {
-	Cells [][]int
-}
-
-func GenerateField() *GameField {
-	field := make([][]int, FieldSize)
-	for i := 0; i < FieldSize; i++ {
-		field[i] = make([]int, FieldSize)
-	}
-	return &GameField{
-		Cells: field,
-	}
+	Cells [FieldSize][FieldSize]int
 }
 
 func (f* GameField) ClearField() {
