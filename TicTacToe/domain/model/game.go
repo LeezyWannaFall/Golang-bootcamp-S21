@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/google/uuid"
+
 const (
 	Empty = 0
 	Cross = 1
@@ -7,27 +9,22 @@ const (
 )
 
 type Game struct {
+	ID uuid.UUID
 	IsFinished bool
 	Field GameField
 	CurrentTurn int
 	Winner int
 }
 
-func NewGameState() *Game {
+func NewGame() *Game {
 	return &Game{
+		ID:          uuid.New(),
 		IsFinished:  false,
 		CurrentTurn: Cross,
 		Winner:      0,
 	}
 }
 
-func (g *Game) EndGame() {
-	g.IsFinished = true
-}
-
-func (g *Game) IsGameRunning() bool {
-	return g.IsFinished
-}
 
 func (g *Game) SwitchTurn() {
 	if g.CurrentTurn == Cross {
@@ -35,10 +32,6 @@ func (g *Game) SwitchTurn() {
 	} else {
 		g.CurrentTurn = Cross
 	}
-}
-
-func (g *Game) SetWinner(winner int) {
-	g.Winner = winner
 }
 
 func (g* Game) MakeMove(x, y int) bool {
