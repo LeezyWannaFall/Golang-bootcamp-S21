@@ -10,7 +10,7 @@ const (
 	Draw = 0
 )
 
-func MiniMax(field model.GameField, currentTurn int) int{
+func MiniMax(field model.GameField, currentTurn int) int {
 	if field.CheckWin(model.Cross) { return Player }
 	if field.CheckWin(model.Zero) { return Enemy }
 	if model.CheckAllCellsFilled(field) { return Draw }	
