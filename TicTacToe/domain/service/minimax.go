@@ -5,14 +5,14 @@ import (
 )
 
 const (
-	Player = -1
-	Enemy = 1
+	AiZeroWin = 1
+	PlayerCrossWin = -1
 	Draw = 0
 )
 
 func MiniMax(field model.GameField, currentTurn int) int {
-	if field.CheckWin(model.Cross) { return Player }
-	if field.CheckWin(model.Zero) { return Enemy }
+	if field.CheckWin(model.Cross) { return PlayerCrossWin }
+	if field.CheckWin(model.Zero) { return AiZeroWin }
 	if model.CheckAllCellsFilled(field) { return Draw }	
 
 	if currentTurn == model.Cross {
