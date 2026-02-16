@@ -1,7 +1,7 @@
-package service
+package mapper
 
 import (
-	"TicTacToe/domain/model"
+	"TicTacToe/internal/domain/model"
 )
 
 type GameService interface {

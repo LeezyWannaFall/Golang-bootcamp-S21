@@ -1,14 +1,16 @@
 package service
 
 import (
-    "TicTacToe/domain/model"
+    "TicTacToe/internal/domain/model"
     "errors"
 )
 
-type DefaultGameService struct {}
+type DefaultGameService struct {
+	service DomainInterface	
+}
 
-func NewDefaultGameService() *DefaultGameService {
-	return &DefaultGameService{}
+func NewDefaultGameService(service DomainInterface) *DefaultGameService {
+	return &DefaultGameService{service: service}
 }
 
 func (s *DefaultGameService) NextMove(game *model.Game) (int, int) {

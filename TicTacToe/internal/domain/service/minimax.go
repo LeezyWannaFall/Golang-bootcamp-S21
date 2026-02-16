@@ -1,7 +1,7 @@
 package service
 
 import (
-	"TicTacToe/domain/model"
+	"TicTacToe/internal/domain/model"
 )
 
 const (
