@@ -4,6 +4,6 @@ import (
 	"sync"
 )
 
-type GameStore struct {
+type GameStorage struct {
 	data sync.Map
 }
