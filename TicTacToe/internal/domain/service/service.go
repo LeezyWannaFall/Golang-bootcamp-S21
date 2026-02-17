@@ -61,24 +61,17 @@ func (s *GameService) NextMove(game *model.Game) bool {
         }
     }
 	
-    success := false
-	if game.CurrentTurn == model.Zero {
-    	success = game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, model.Zero)
-    } else if game.CurrentTurn == model.Cross {
-        success = game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, model.Cross)
-    }
-
+    symbolToPlace := game.CurrentTurn
+    
+    success := game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, symbolToPlace)
     if !success {
         return false
     }
 
-    if bestScore == PlayerCrossWin {
-        game.Winner = model.Cross
+    if game.Field.CheckWin(symbolToPlace) {
+        game.Winner = symbolToPlace
         game.IsFinished = true
-    } else if bestScore == AiZeroWin {
-        game.Winner = model.Zero
-        game.IsFinished = true
-    } else if game.Field.CheckAllCellsFilled(){
+    } else if game.Field.CheckAllCellsFilled() {
         game.Winner = model.Empty
         game.IsFinished = true
     } else {
