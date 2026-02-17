@@ -48,21 +48,29 @@ func (h *Handler) NextMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	PlayerMove := h.service.NextMove(game)
-	if !PlayerMove {
+	success := h.service.NextMove(game)
+	if !success {
 		http.Error(w, "invalid move", http.StatusBadRequest)
 		return
 	}
-
-	// AiMove := h.service.NextMove(game)
-	// if !AiMove {
-	// 	http.Error(w, "invalid move", http.StatusBadRequest)
-	// 	return
-	// }
 
 	response := ToResponse(game)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+
+	if game.IsFinished {
+        w.Write([]byte("------------------------------\n"))
+        if game.Winner == 0 {
+            w.Write([]byte("Game over, Draw\n"))
+        } else {
+            winnerSymbol := "Cross"
+            if game.Winner == 2 {
+                winnerSymbol = "Zero"
+            }
+            w.Write([]byte("Game over, Winner: " + winnerSymbol + "\n"))
+        }
+        w.Write([]byte("------------------------------\n"))
+    }
 }

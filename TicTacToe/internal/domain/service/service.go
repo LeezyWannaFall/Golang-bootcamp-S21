@@ -3,7 +3,8 @@ package service
 import (
 	"TicTacToe/internal/domain/model"
 	"errors"
-    "github.com/google/uuid"
+
+	"github.com/google/uuid"
 )
 
 type GameService struct {
@@ -31,29 +32,33 @@ func (s *GameService) NextMove(game *model.Game) bool {
 		return false
 	}
 
-    symbol := model.Cross
-    next := model.Zero
-    bestScore := -2
-    bestMoveX := 0
-    bestMoveY := 0
-
-    if game.CurrentTurn == model.Zero {
-        symbol = model.Zero
-        next = model.Cross
-        bestScore = 2
+    if game.Field.CheckWin(model.Cross) {
+        game.Winner = model.Cross
+        game.IsFinished = true
+        s.repo.Save(game)
+        return true
     }
+
+    if game.Field.CheckAllCellsFilled() {
+        game.Winner = model.Empty
+        game.IsFinished = true
+        s.repo.Save(game)
+        return true
+    }
+
+    bestScore := 2
+    bestMoveX, bestMoveY := -1, -1
 
     for i := 0; i < model.FieldSize; i++ {
         for j := 0; j < model.FieldSize; j++ {
             if game.Field.Cells[i][j] == model.Empty {
-                game.Field.Cells[i][j] = symbol
+                game.Field.Cells[i][j] = model.Zero
                 
-                score := MiniMax(game.Field, next)
+                score := MiniMax(game.Field, model.Cross)
                 
                 game.Field.Cells[i][j] = model.Empty
 
-                if (symbol == model.Cross && score > bestScore) ||
-                   (symbol == model.Zero && score < bestScore) {
+                if score < bestScore { 
                     bestScore = score
                     bestMoveX = j
                     bestMoveY = i
@@ -61,30 +66,23 @@ func (s *GameService) NextMove(game *model.Game) bool {
             }
         }
     }
-	
-    symbolToPlace := game.CurrentTurn
     
-    success := game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, symbolToPlace)
-    if !success {
-        return false
-    }
-
-    if game.Field.CheckWin(symbolToPlace) {
-        game.Winner = symbolToPlace
-        game.IsFinished = true
-    } else if game.Field.CheckAllCellsFilled() {
-        game.Winner = model.Empty
-        game.IsFinished = true
-    } else {
-        game.SwitchTurn()
+    if bestMoveX != -1 && bestMoveY != -1 {
+        game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, model.Zero)
+        
+        if game.Field.CheckWin(model.Zero) {
+            game.Winner = model.Zero
+            game.IsFinished = true
+        } else if game.Field.CheckAllCellsFilled() {
+            game.Winner = model.Empty
+            game.IsFinished = true
+        } else {
+            game.CurrentTurn = model.Cross
+        }
     }
 
     err = s.repo.Save(game)
-    if err != nil {
-        return false
-    }
-
-	return true
+    return err == nil
 }
 
 func (s *GameService) Validate(oldGame, newGame *model.Game) error {
