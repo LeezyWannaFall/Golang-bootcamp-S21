@@ -1,4 +1,4 @@
-package handler
+package web
 
 import (
 	"TicTacToe/internal/domain/model"

@@ -3,13 +3,14 @@ package service
 import (
 	"TicTacToe/internal/domain/model"
 	"errors"
+    "github.com/google/uuid"
 )
 
 type GameService struct {
 	repo DataInterface
 }
 
-func NewGameService(repo DataInterface) *GameService {
+func NewGameService(repo DataInterface) DomainInterface {
     return &GameService{repo: repo}
 }
 
@@ -129,4 +130,22 @@ func (s *GameService) Validate(oldGame, newGame *model.Game) error {
 
 func (s *GameService) IsGameOver(game *model.Game) bool {
 	return game.IsFinished
+}
+
+func (s *GameService) StartGame() (*model.Game, error) {
+    newGame := &model.Game{
+        ID: uuid.New(),
+        IsFinished: false,
+        Field: model.GameField{},
+        CurrentTurn: model.Cross,
+        Winner: model.Empty,
+    }
+    newGame.Field.ClearField()
+
+    err := s.repo.Save(newGame)
+    if err != nil {
+        return nil, err
+    }
+
+    return newGame, nil
 }

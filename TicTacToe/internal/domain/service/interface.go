@@ -13,4 +13,5 @@ type DomainInterface interface {
 	NextMove(game *model.Game) bool
 	Validate(oldGame, newGame *model.Game) error
 	IsGameOver(game *model.Game) bool
+	StartGame() (*model.Game, error)
 }

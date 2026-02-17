@@ -1,4 +1,4 @@
-package handler
+package web
 
 import (
 	"TicTacToe/internal/domain/service"
@@ -15,6 +15,19 @@ type Handler struct{
 
 func NewHandler(service service.DomainInterface) *Handler {
 	return &Handler{service: service}
+}
+
+func (h *Handler) StartGame(w http.ResponseWriter, r *http.Request) {
+	game, err := h.service.StartGame()
+	if err != nil {
+		http.Error(w, "could not start game", http.StatusInternalServerError)
+		return
+	}
+
+	response := ToResponse(game)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *Handler) NextMove(w http.ResponseWriter, r *http.Request) {
@@ -35,12 +48,17 @@ func (h *Handler) NextMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serviceRes := h.service.NextMove(game)
-
-	if !serviceRes {
+	PlayerMove := h.service.NextMove(game)
+	if !PlayerMove {
 		http.Error(w, "invalid move", http.StatusBadRequest)
 		return
 	}
+
+	// AiMove := h.service.NextMove(game)
+	// if !AiMove {
+	// 	http.Error(w, "invalid move", http.StatusBadRequest)
+	// 	return
+	// }
 
 	response := ToResponse(game)
 

@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"TicTacToe/internal/domain/model"
+	"TicTacToe/internal/domain/service"
 	"errors"
 )
 
@@ -9,7 +10,7 @@ type GameRepository struct {
 	storage *GameStorage
 }
 
-func NewRepository(storage *GameStorage) *GameRepository {
+func NewRepository(storage *GameStorage) service.DataInterface {
 	return &GameRepository{storage: storage}
 }
 
