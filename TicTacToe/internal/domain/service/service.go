@@ -1,19 +1,35 @@
 package service
 
 import (
-    "TicTacToe/internal/domain/model"
-    "errors"
+	"TicTacToe/internal/domain/model"
+	"errors"
 )
 
-type DefaultGameService struct {
-	service DomainInterface	
+type GameService struct {
+	repo DataInterface
 }
 
-func NewDefaultGameService(service DomainInterface) *DefaultGameService {
-	return &DefaultGameService{service: service}
+func NewGameService(repo DataInterface) *GameService {
+    return &GameService{repo: repo}
 }
 
-func (s *DefaultGameService) NextMove(game *model.Game) (int, int) {
+/*
+	NextMove(game *model.Game) (int, int)
+	Validate(game *model.Game) error
+	IsGameOver(game *model.Game) bool
+*/
+
+func (s *GameService) NextMove(game *model.Game) bool {
+	dataGame, err := s.repo.Get(game.ID.String())
+	if err != nil {
+		return false
+	}
+	
+	err = s.Validate(dataGame, game)
+	if err != nil {
+		return false
+	}
+
     symbol := model.Cross
     next := model.Zero
     bestScore := -2
@@ -30,11 +46,13 @@ func (s *DefaultGameService) NextMove(game *model.Game) (int, int) {
         for j := 0; j < model.FieldSize; j++ {
             if game.Field.Cells[i][j] == model.Empty {
                 game.Field.Cells[i][j] = symbol
+                
                 score := MiniMax(game.Field, next)
+                
                 game.Field.Cells[i][j] = model.Empty
 
                 if (symbol == model.Cross && score > bestScore) ||
-                (symbol == model.Zero && score < bestScore) {
+                   (symbol == model.Zero && score < bestScore) {
                     bestScore = score
                     bestMoveX = j
                     bestMoveY = i
@@ -42,12 +60,41 @@ func (s *DefaultGameService) NextMove(game *model.Game) (int, int) {
             }
         }
     }
+	
+    success := false
+	if game.CurrentTurn == model.Zero {
+    	success = game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, model.Zero)
+    } else if game.CurrentTurn == model.Cross {
+        success = game.Field.PlaceSymbolOnField(bestMoveX, bestMoveY, model.Cross)
+    }
 
-    return bestMoveX, bestMoveY
+    if !success {
+        return false
+    }
+
+    if bestScore == PlayerCrossWin {
+        game.Winner = model.Cross
+        game.IsFinished = true
+    } else if bestScore == AiZeroWin {
+        game.Winner = model.Zero
+        game.IsFinished = true
+    } else if game.Field.CheckAllCellsFilled(){
+        game.Winner = model.Empty
+        game.IsFinished = true
+    } else {
+        game.SwitchTurn()
+    }
+
+    err = s.repo.Save(game)
+    if err != nil {
+        return false
+    }
+
+	return true
 }
 
-func (s *DefaultGameService) Validate(oldGame, newGame *model.Game) error {
-    if s.IsGameOver(oldGame) {
+func (s *GameService) Validate(oldGame, newGame *model.Game) error {
+	if s.IsGameOver(oldGame) {
         return errors.New("game already finished") 
     }
 
@@ -87,6 +134,6 @@ func (s *DefaultGameService) Validate(oldGame, newGame *model.Game) error {
     return nil
 }
 
-func (s *DefaultGameService) IsGameOver(game *model.Game) bool {
+func (s *GameService) IsGameOver(game *model.Game) bool {
 	return game.IsFinished
 }

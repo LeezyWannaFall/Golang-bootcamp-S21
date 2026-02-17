@@ -10,7 +10,7 @@ type DataInterface interface {
 }
 
 type DomainInterface interface {
-	NextMove(game *model.Game) (int, int)
+	NextMove(game *model.Game) bool
 	Validate(oldGame, newGame *model.Game) error
 	IsGameOver(game *model.Game) bool
 }

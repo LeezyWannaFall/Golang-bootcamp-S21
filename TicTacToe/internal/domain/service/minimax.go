@@ -13,7 +13,7 @@ const (
 func MiniMax(field model.GameField, currentTurn int) int {
 	if field.CheckWin(model.Cross) { return PlayerCrossWin }
 	if field.CheckWin(model.Zero) { return AiZeroWin }
-	if model.CheckAllCellsFilled(field) { return Draw }	
+	if field.CheckAllCellsFilled() { return Draw }	
 
 	if currentTurn == model.Cross {
 		bestScore := -2

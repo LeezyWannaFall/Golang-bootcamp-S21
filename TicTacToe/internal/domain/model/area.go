@@ -6,7 +6,7 @@ type GameField struct {
 	Cells [FieldSize][FieldSize]int
 }
 
-func (f* GameField) ClearField() {
+func (f *GameField) ClearField() {
 	for i := 0; i < FieldSize; i++ {
 		for j := 0; j < FieldSize; j++ {
 			f.Cells[i][j] = 0
@@ -14,7 +14,7 @@ func (f* GameField) ClearField() {
 	}
 }
 
-func (f* GameField) PlaceSymbolOnField(x, y int, symbol int) bool {
+func (f *GameField) PlaceSymbolOnField(x, y int, symbol int) bool {
 	if x < 0 || x >= FieldSize || y < 0 || y >= FieldSize {
 		return false
 	}
@@ -27,7 +27,7 @@ func (f* GameField) PlaceSymbolOnField(x, y int, symbol int) bool {
 	return true
 }
 
-func (f* GameField) CheckWin(symbol int) bool {
+func (f *GameField) CheckWin(symbol int) bool {
 	// строки
 	for i := 0; i < FieldSize; i++ {
 		if f.Cells[i][0] == symbol &&
@@ -62,7 +62,7 @@ func (f* GameField) CheckWin(symbol int) bool {
 	return false
 }
 
-func CheckAllCellsFilled(f GameField) bool {
+func (f *GameField) CheckAllCellsFilled() bool {
 	for i := 0; i < FieldSize; i++ {
 		for j := 0; j < FieldSize; j++ {
 			if f.Cells[i][j] == 0 {
