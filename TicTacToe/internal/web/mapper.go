@@ -9,8 +9,7 @@ func FromRequest(dto RequestDTO) *model.Game {
 		Field: model.GameField{
 			Cells: dto.GameField,
 		},
-	}
-	// TODO: добавить ID
+	} 
 }
 
 func ToResponse(game *model.Game) ResponseDTO {
